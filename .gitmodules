@@ -4,3 +4,6 @@
 [submodule "pipeline/brahle_assembly"]
 	path = pipeline/brahle_assembly
 	url = https://github.com/brahle/assembly
+[submodule "pipeline/msa"]
+	path = pipeline/msa
+	url = https://github.com/agrbin/msa
