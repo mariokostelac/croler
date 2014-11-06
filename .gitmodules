@@ -1,6 +1,6 @@
 [submodule "pipeline/qpid"]
 	path = pipeline/qpid
-	url = git@github.com:mariokostelac/qpid.git
+	url = https://github.com/mariokostelac/qpid
 [submodule "pipeline/brahle_assembly"]
 	path = pipeline/brahle_assembly
 	url = https://github.com/brahle/assembly
