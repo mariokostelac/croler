@@ -1,0 +1,65 @@
+#ifndef OVERLAPS_MYERS_H_
+#define OVERLAPS_MYERS_H_
+
+namespace overlap {
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Status codes
+#define MYERS_STATUS_OK 0
+
+// Alignment modes
+#define MYERS_MODE_HW 0
+#define MYERS_MODE_NW 1
+#define MYERS_MODE_SHW 2
+
+/**
+ * Calculates edit distance of query and target
+ * using Myers's fast bit-vector algorithm and Ukkonen's algorithm.
+ * In edit distance problem mismatch and indel have cost of 1, while match has cost of 0.
+ * Query can start anywhere and can end anywhere inside target,
+ *  which means gaps before and after are not penalized.
+ * Query and target are represented as arrays of numbers, where each number is
+ *  index of corresponding letter in alphabet. So for example if alphabet is ['A','C','T','G']
+ *  and query string is "AACG" and target string is "GATTCGG" then our input query should be
+ *  [0,0,1,3] and input target should be [3,0,2,2,1,3,3] (and alphabetLength would be 4).
+ * @param [in] query  Array of alphabet indices.
+ * @param [in] queryLength
+ * @param [in] target  Array of alphabet indices.
+ * @param [in] targetLength
+ * @param [in] alphabetLength
+ * @param [in] k  Non-negative number, constraint for Ukkonen.
+ *                 Only best score <= k will be searched for.
+ *                 If k is smaller then calculation is faster.
+ *                 If you are interested in score only if it is <= K, set k to K.
+ *                 If k is negative then k will be auto-adjusted (increased) until score is found.
+ * @param [in] mode  Mode that determines alignment algorithm.
+ *                    MYERS_MODE_NW: global (Needleman-Wunsch)
+ *                    MYERS_MODE_HW: semi-global. Gaps before and after query are not penalized.
+ *                    MYERS_MODE_SHW: semi-global. Gap after query is not penalized.
+ * @param [out] score  Best score (smallest edit distance) or -1 if there is no best score <= k.
+ * @param [out] position  Zero-based position in target where query ends (position of last character).
+ *                        If gap after query is penalized then it counts as part of query,
+ *                        otherwise not.
+ * @return Status code.
+ */
+int MyersEditDistance(
+    const unsigned char* query,
+    int query_size,
+    const unsigned char* target,
+    int target_size,
+    int alphabet_size,
+    int k,
+    int mode,
+    int* score,
+    int* position);
+
+#ifdef __cplusplus
+}
+#endif
+
+}  // namespace overlap
+
+#endif  // OVERLAPS_MYERS_H_

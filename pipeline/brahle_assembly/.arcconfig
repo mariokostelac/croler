@@ -1,0 +1,8 @@
+{
+  "phabricator.uri": "http://valeria.zesoi.fer.hr:8082/",
+  "load": [
+    "config/arcconfig"
+  ],
+  "lint.engine": "OlapperLintEngine",
+  "unit.engine": "OlapperUnitTestRunner"
+}
