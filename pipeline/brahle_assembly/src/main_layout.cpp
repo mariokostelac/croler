@@ -4,9 +4,13 @@
 #include <layout/unitigging.h>
 #include <layout/layout_utils.h>
 #include <layout/string_graph.h>
+#include <layout/contig.h>
+#include <layout/better_read.h>
 #include <cstdlib>
 #include <ctime>
 #include <memory>
+#include <deque>
+#include <vector>
 
 void usage(char *argv[]) {
   fprintf(
@@ -90,6 +94,49 @@ int main(int argc, char *argv[]) {
       (clock() - start) / static_cast<double>(CLOCKS_PER_SEC));
 
   g.printToGraphviz(graphviz_file);
+
+
+  // output afg
+  // @mculinovic
+  FILE *afg_file = fopen("layout.afg", "w");
+
+  std::shared_ptr<layout::ContigSet> contigs = u->contigs();
+  int contigs_size = contigs->size();
+  for (int i = 0; i < contigs_size; ++i) {
+      fprintf(afg_file, "{LAY\n");
+      uint32_t offset = 0;
+      std::deque< layout::BetterRead* > reads = (*contigs)[i]->getReads();
+      if (reads.size() == 1) {
+          fprintf(afg_file, "{TLE\n");
+          fprintf(afg_file, "clr:%u,%u\n", 0, reads[0]->read()->size());
+          fprintf(afg_file, "off:0\n");
+          fprintf(afg_file, "src:%d\n}\n}\n", reads[0]->read()->id()); // maybe orig_id??
+          continue;
+      }
+
+      int num_reads = reads.size();
+      for (int i = 0; i < num_reads - 1; ++i) {
+          layout::BetterRead* read1 = reads[i];
+          layout::BetterRead* read2 = reads[i + 1];
+          std::vector< std::pair< uint32_t, layout::BetterOverlap* >> overlaps = read2->overlaps();
+          // find overlap between first and second read
+          for (auto overlap: overlaps) {
+              if (overlap.first == read1->id()) {
+                  fprintf(afg_file, "{TLE\n");
+                  fprintf(afg_file, "clr:%u,%u\n", 0, read1->read()->size());
+                  fprintf(afg_file, "off:%u\n", offset);
+                  fprintf(afg_file, "src:%d\n}\n", read1->read()->id()); // maybe orig_id??
+                  offset += read1->read()->size() - overlap.second->Length();
+                  break;
+              }
+          }
+      }
+
+      fprintf(afg_file, "}\n");
+  }
+
+  fclose(afg_file);
+  // end output afg
 
   fclose(overlaps_file);
   fclose(reads_file);

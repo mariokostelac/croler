@@ -1,5 +1,7 @@
 #include "layout/contig.h"
 
+using std::deque;
+
 namespace layout {
 
 Contig::Contig(BetterReadPtr starting, BetterReadSetPtr read_set) :
@@ -61,6 +63,10 @@ void Contig::Kill() {
 
 size_t Contig::size() const {
   return reads_.size();
+}
+
+deque< BetterRead* > Contig::getReads() {
+  return reads_;
 }
 
 ContigSet::ContigSet(BetterReadSet* read_set) : contigs_(read_set->size()) {
