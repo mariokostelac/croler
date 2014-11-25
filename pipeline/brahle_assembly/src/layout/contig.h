@@ -49,6 +49,11 @@ class Contig {
    */
   void SetValid(bool value);
 
+  /**
+   * Returns reads contig consists of
+   */
+  std::deque< BetterReadPtr > getReads();
+
  private:
   std::deque< BetterReadPtr > reads_;
   BetterReadSetPtr read_set_;
