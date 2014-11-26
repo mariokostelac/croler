@@ -20,7 +20,7 @@ include buildnumber.mak
 .PHONY: run valgrind
 
 OPTIMIZATION_FLAGS=-flto -finline-limit=200
-ASORTED_FLAGS=-std=c++11 -lz
+ASORTED_FLAGS=-std=c++11
 WARINIG_FLAGS=-Wall -Wextra -pedantic -Werror
 FLAGS=$(OPTIMIZATION_FLAGS) $(ASORTED_FLAGS) $(WARNING_FLAGS) $(BUILD_NUMBER_LDFLAGS)
 DEBUG_FLAGS=-g -ggdb -DDEBUG
@@ -48,7 +48,7 @@ sais.o:	src/overlap/sais.c
 # build rule for test executables.
 $(TEST): %: src/test/%.cpp $(ALL_OBJ)
 	@/bin/echo -e "\e[34m  LINK $@ \033[0m"
-	@$(CC) $< $(patsubst %,bin/%,$(ALL_OBJ)) -o bin/$@
+	@$(CC) $< $(patsubst %,bin/%,$(ALL_OBJ)) -lz -o bin/$@
 
 # build rule for main executables.
 # $(EXE): %: src/%.cpp $(ALL_OBJ) $(BUILD_NUMBER_FILE)
