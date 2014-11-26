@@ -4,8 +4,13 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+#include <zlib.h>
 
 #include "layout/layout_utils.h"
+#include "vendor/fastq_parser/parser.h"
+
+// init fasta/fastq reader
+KSEQ_INIT(gzFile, gzread)
 
 namespace layout {
 
@@ -54,6 +59,32 @@ overlap::ReadSet* ReadReadsAfg(FILE *fd) {
       read_set->Add(ReadOneReadAfg(fd));
     }
   }
+  printf(
+      "Reads read in %.2lfs\n",
+      (clock() - start)/static_cast<double>(CLOCKS_PER_SEC));
+  return read_set;
+}
+
+overlap::ReadSet* ReadReadsSeq(char* filename) {
+  gzFile fp = gzopen(filename, "r");
+  kseq_t *seq = kseq_init(fp);
+
+  clock_t start = clock();
+  auto read_set = new overlap::ReadSet(10000);
+
+  int len = 0;
+  int id = 1;
+  while ((len = kseq_read(seq)) > 0) {
+    char *read_string = new char[len + 1];
+    strcpy(read_string, seq->seq.s);
+    auto read = new overlap::Read(reinterpret_cast<uint8_t*>(read_string), len, (id-1), id);
+    read_set->Add(read);
+    id++;
+  }
+
+  kseq_destroy(seq);
+  gzclose(fp);
+
   printf(
       "Reads read in %.2lfs\n",
       (clock() - start)/static_cast<double>(CLOCKS_PER_SEC));

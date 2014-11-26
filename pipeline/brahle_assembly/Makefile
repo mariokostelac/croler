@@ -20,7 +20,7 @@ include buildnumber.mak
 .PHONY: run valgrind
 
 OPTIMIZATION_FLAGS=-flto -finline-limit=200
-ASORTED_FLAGS=-std=c++11
+ASORTED_FLAGS=-std=c++11 -lz
 WARINIG_FLAGS=-Wall -Wextra -pedantic -Werror
 FLAGS=$(OPTIMIZATION_FLAGS) $(ASORTED_FLAGS) $(WARNING_FLAGS) $(BUILD_NUMBER_LDFLAGS)
 DEBUG_FLAGS=-g -ggdb -DDEBUG

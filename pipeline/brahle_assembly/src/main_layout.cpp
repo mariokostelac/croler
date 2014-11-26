@@ -15,7 +15,7 @@
 void usage(char *argv[]) {
   fprintf(
       stderr,
-      "Usage: %s <minimus_folder> | (<reads_file.afg> <overlaps_file.afg>)\n",
+      "Usage: %s <minimus_folder> | (<reads_file.seq> <overlaps_file.afg>)\n",
       argv[0]);
   exit(0);
 }
@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
         reads_file_name);
     exit(1);
   }
+  fclose(reads_file);
   FILE *overlaps_file = fopen(overlaps_file_name, "r");
   if (overlaps_file == nullptr) {
     fprintf(
@@ -67,7 +68,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  std::shared_ptr< overlap::ReadSet > reads(layout::ReadReadsAfg(reads_file));
+  std::shared_ptr< overlap::ReadSet > reads(layout::ReadReadsSeq(reads_file_name));
   fprintf(stderr, "Number of reads = %u\n", reads->size());
 
   std::shared_ptr< overlap::OverlapSet > overlaps(
@@ -139,7 +140,6 @@ int main(int argc, char *argv[]) {
   // end output afg
 
   fclose(overlaps_file);
-  fclose(reads_file);
   fclose(graphviz_file);
   return 0;
 }

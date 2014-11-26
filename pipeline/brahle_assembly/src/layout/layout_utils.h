@@ -20,6 +20,11 @@ overlap::Read* ReadOneReadAfg(FILE *fd);
 overlap::ReadSet* ReadReadsAfg(FILE *fd);
 
 /**
+ * Reads all reads from the .seq (fastq format) file
+ */
+overlap::ReadSet* ReadReadsSeq(char *filename);
+
+/**
  * Reads all overlaps form the .afg file.
  */
 overlap::OverlapSet* ReadOverlapsAfg(overlap::ReadSet* read_set, FILE *fd);
