@@ -26,8 +26,8 @@ FLAGS=$(OPTIMIZATION_FLAGS) $(ASORTED_FLAGS) $(WARNING_FLAGS) $(BUILD_NUMBER_LDF
 DEBUG_FLAGS=-g -ggdb -DDEBUG
 NODEBUG_FLAGS=-s -O3 -DNDEBUG
 
-CC=g++ $(FLAGS) $(NO_DEBUG_FLAGS) -I$(INCLUDE)
-CCE=g++ $(FLAGS) $(NO_DEBUG_FLAGS) -I$(INCLUDE)
+CC=g++ $(FLAGS) $(DEBUG_FLAGS) -I$(INCLUDE)
+CCE=g++ $(FLAGS) $(DEBUG_FLAGS) -I$(INCLUDE)
 
 TEST=unitigging_test
 
@@ -51,12 +51,9 @@ $(TEST): %: src/test/%.cpp $(ALL_OBJ)
 	@$(CC) $< $(patsubst %,bin/%,$(ALL_OBJ)) -lz -o bin/$@
 
 # build rule for main executables.
-# $(EXE): %: src/%.cpp $(ALL_OBJ) $(BUILD_NUMBER_FILE)
-# 	@/bin/echo -e "\e[34m  LINK $@ \033[0m"
-# 	@$(CC) $< $(patsubst %,bin/%,$(ALL_OBJ)) -o bin/$@
 $(EXE): %: src/%.cpp $(ALL_OBJ) $(BUILD_NUMBER_FILE)
 	@/bin/echo -e "\e[34m  LINK $@ \033[0m"
-	@$(CC) $< $(patsubst %,bin/%,$(ALL_OBJ)) -o bin/$@
+	@$(CC) $< $(patsubst %,bin/%,$(ALL_OBJ)) -lz -o bin/$@
 
 valgrind: main_layout
 	valgrind bin/main_layout sample/small
