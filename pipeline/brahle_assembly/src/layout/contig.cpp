@@ -65,7 +65,7 @@ size_t Contig::size() const {
   return reads_.size();
 }
 
-deque< BetterRead* > Contig::getReads() {
+const deque< BetterRead* >& Contig::getReads() {
   return reads_;
 }
 

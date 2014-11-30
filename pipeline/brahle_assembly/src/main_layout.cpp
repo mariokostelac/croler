@@ -104,29 +104,34 @@ int main(int argc, char *argv[]) {
   std::shared_ptr<layout::ContigSet> contigs = u->contigs();
   int contigs_size = contigs->size();
   for (int i = 0; i < contigs_size; ++i) {
+      // skip non-usable contigs
+      if (!((*contigs)[i]->IsUsable())) continue;
+
       fprintf(afg_file, "{LAY\n");
       uint32_t offset = 0;
-      std::deque< layout::BetterRead* > reads = (*contigs)[i]->getReads();
+      const std::deque< layout::BetterRead* > &reads = (*contigs)[i]->getReads();
       if (reads.size() == 1) {
           fprintf(afg_file, "{TLE\n");
           fprintf(afg_file, "clr:%u,%u\n", 0, reads[0]->read()->size());
           fprintf(afg_file, "off:0\n");
-          fprintf(afg_file, "src:%d\n}\n}\n", reads[0]->read()->id()); // maybe orig_id??
+          fprintf(afg_file, "src:%d\n}\n}\n", reads[0]->read()->id());
           continue;
       }
 
       int num_reads = reads.size();
-      for (int i = 0; i < num_reads - 1; ++i) {
-          layout::BetterRead* read1 = reads[i];
-          layout::BetterRead* read2 = reads[i + 1];
-          std::vector< std::pair< uint32_t, layout::BetterOverlap* >> overlaps = read2->overlaps();
+      for (int j = 0; j < num_reads - 1; ++j) {
+          layout::BetterRead* read1 = reads[j];
+          layout::BetterRead* read2 = reads[j + 1];
+          read1->Finalize();
+          const std::vector< std::pair< uint32_t, layout::BetterOverlap* >> &overlaps = read1->overlaps();
+
           // find overlap between first and second read
-          for (auto overlap: overlaps) {
-              if (overlap.first == read1->id()) {
+          for (const auto& overlap: overlaps) {
+              if (overlap.first == read2->id() && overlap.second != nullptr) {
                   fprintf(afg_file, "{TLE\n");
                   fprintf(afg_file, "clr:%u,%u\n", 0, read1->read()->size());
                   fprintf(afg_file, "off:%u\n", offset);
-                  fprintf(afg_file, "src:%d\n}\n", read1->read()->id()); // maybe orig_id??
+                  fprintf(afg_file, "src:%d\n}\n", read1->read()->id()); 
                   offset += read1->read()->size() - overlap.second->Length();
                   break;
               }
