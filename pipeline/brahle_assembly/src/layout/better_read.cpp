@@ -79,9 +79,9 @@ BetterReadSet::BetterReadSet(ReadSetPtr read_set, bool master = false) :
 }
 
 BetterReadSet::~BetterReadSet() {
-  for (BetterReadPtr read : read_set_) {
-    delete read;
-  }
+  //for (BetterReadPtr read : read_set_) {
+    //delete read;
+  //}
 }
 
 BetterReadSet::BetterReadPtr& BetterReadSet::operator[](size_t i) {
