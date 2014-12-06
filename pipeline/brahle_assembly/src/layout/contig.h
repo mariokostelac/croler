@@ -52,7 +52,7 @@ class Contig {
   /**
    * Returns reads contig consists of
    */
-  std::deque< BetterReadPtr > getReads();
+  const std::deque< BetterReadPtr >& getReads();
 
  private:
   std::deque< BetterReadPtr > reads_;
