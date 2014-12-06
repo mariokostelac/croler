@@ -1,6 +1,3 @@
-[submodule "pipeline/qpid"]
-	path = pipeline/qpid
-	url = https://github.com/mariokostelac/qpid
 [submodule "pipeline/msa"]
 	path = pipeline/msa
 	url = https://github.com/agrbin/msa
