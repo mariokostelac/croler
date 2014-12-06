@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -Wall -std=c++11 -O2 -I../../vendor/
+CFLAGS = -g -Wall -std=c++11 -O2 -I vendor/
 LDFLAGS = -lz -pthread
 
 align = src/align/align.h src/align/align.cpp
@@ -61,15 +61,15 @@ obj/timer.o: src/timer/timer.cpp
 bin/overlap: obj/overlap.o obj/align.o obj/nucleo_buffer.o obj/minq.o obj/minimizer.o obj/timer.o
 	@echo [LD] $@
 	@$(CC) $(LDFLAGS) -o $@ obj/*.o \
-		/data/assembly/vendor/AMOS/obj/Read_AMOS.o \
-	  /data/assembly/vendor/AMOS/obj/Sequence_AMOS.o \
-	  /data/assembly/vendor/AMOS/obj/Universal_AMOS.o \
-	  /data/assembly/vendor/AMOS/obj/Message_AMOS.o \
-	  /data/assembly/vendor/AMOS/obj/datatypes_AMOS.o \
-	  /data/assembly/vendor/AMOS/obj/BankStream_AMOS.o \
-	  /data/assembly/vendor/AMOS/obj/Bank_AMOS.o \
-	  /data/assembly/vendor/AMOS/obj/IDMap_AMOS.o \
-	  /data/assembly/vendor/AMOS/obj/utility_AMOS.o
+		vendor/AMOS/obj/Read_AMOS.o \
+	  vendor/AMOS/obj/Sequence_AMOS.o \
+	  vendor/AMOS/obj/Universal_AMOS.o \
+	  vendor/AMOS/obj/Message_AMOS.o \
+	  vendor/AMOS/obj/datatypes_AMOS.o \
+	  vendor/AMOS/obj/BankStream_AMOS.o \
+	  vendor/AMOS/obj/Bank_AMOS.o \
+	  vendor/AMOS/obj/IDMap_AMOS.o \
+	  vendor/AMOS/obj/utility_AMOS.o
 
 bin/test_align: $(align) src/align/test_align.cpp
 	@echo [CC] $@
