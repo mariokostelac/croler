@@ -11,70 +11,80 @@ overlap = src/overlap.cpp
 parser = src/parser/parser.h
 timer = src/timer/timer.h src/timer/timer.cpp
 parsero = src/parsero/parsero.h
+AMOS_OBJ_ALL = Read_AMOS.o \
+	  Sequence_AMOS.o \
+	  Universal_AMOS.o \
+	  Message_AMOS.o \
+	  datatypes_AMOS.o \
+	  BankStream_AMOS.o \
+	  Bank_AMOS.o \
+	  IDMap_AMOS.o \
+	  utility_AMOS.o
 
-all: bin/test_nucleo_buffer bin/test_align bin/test_minq bin/test_hash_list bin/test_minimizer bin/overlap
+default: prepare bin/overlap
+all: prepare bin/test_nucleo_buffer bin/test_align bin/test_minq bin/test_hash_list bin/test_minimizer bin/overlap
+
+prepare:
+	@test -d bin || mkdir bin
+	@test -d obj || mkdir obj
+
+bin/overlap: overlap.o align.o nucleo_buffer.o minq.o minimizer.o timer.o $(AMOS_OBJ_ALL)
+	@/bin/echo -e "\e[34m  LD $@ \033[0m"
+	@$(CC) $(LDFLAGS) -o $@ $(^:%=obj/%)
 
 bin/test_nucleo_buffer: $(nucleo_buffer) src/nucleo_buffer/test_nucleo_buffer.cpp
-	@echo [CC] $@
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
 	@rm -f $@
 	@$(CC) $(CFLAGS) $^ -o $@
 
 bin/test_minq: $(minq) src/fixed_min_queue/test_minq.cpp
-	@echo [CC] $@
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
 	@rm -f $@
 	@$(CC) $(CFLAGS) $^ -o $@
 
 bin/test_hash_list: $(hash_list) src/hash_list/test_hash_list.cpp
-	@echo [CC] $@
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
 	@rm -f $@
 	@$(CC) $(CFLAGS) $^ -o $@
 
 bin/test_minimizer: $(minimizer) src/minimizer/test_minimizer.cpp
-	@echo [CC] $@
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
 	@rm -f $@
 	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-obj/align.o: src/align/align.cpp
-	@echo [CC] $@
-	@$(CC) $(CFLAGS) -c -o $@ $^
+align.o: src/align/align.cpp
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
+	@$(CC) $(CFLAGS) -c -o obj/$@ $<
 
-obj/nucleo_buffer.o: src/nucleo_buffer/nucleo_buffer.cpp
-	@echo [CC] $@
-	@$(CC) $(CFLAGS) -c -o $@ $^
+nucleo_buffer.o: src/nucleo_buffer/nucleo_buffer.cpp
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
+	@$(CC) $(CFLAGS) -c -o obj/$@ $<
 
-obj/overlap.o: src/overlap.cpp
-	@echo [CC] $@
-	@$(CC) $(CFLAGS) -c -o $@ $^
+overlap.o: src/overlap.cpp
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
+	@$(CC) $(CFLAGS) -c -o obj/$@ $<
 
-obj/minq.o: src/fixed_min_queue/fixed_min_queue.cpp
-	@echo [CC] $@
-	@$(CC) $(CFLAGS) -c -o $@ $^
+minq.o: src/fixed_min_queue/fixed_min_queue.cpp
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
+	@$(CC) $(CFLAGS) -c -o obj/$@ $<
 
-obj/minimizer.o: src/minimizer/minimizer.cpp
-	@echo [CC] $@
-	@$(CC) $(CFLAGS) -c -o $@ $^
+minimizer.o: src/minimizer/minimizer.cpp
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
+	@$(CC) $(CFLAGS) -c -o obj/$@ $^
 
-obj/timer.o: src/timer/timer.cpp
-	@echo [CC] $@
-	@$(CC) $(CFLAGS) -c -o $@ $^
+timer.o: src/timer/timer.cpp
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
+	@$(CC) $(CFLAGS) -c -o obj/$@ $<
 
-bin/overlap: obj/overlap.o obj/align.o obj/nucleo_buffer.o obj/minq.o obj/minimizer.o obj/timer.o
-	@echo [LD] $@
-	@$(CC) $(LDFLAGS) -o $@ obj/*.o \
-		vendor/AMOS/obj/Read_AMOS.o \
-	  vendor/AMOS/obj/Sequence_AMOS.o \
-	  vendor/AMOS/obj/Universal_AMOS.o \
-	  vendor/AMOS/obj/Message_AMOS.o \
-	  vendor/AMOS/obj/datatypes_AMOS.o \
-	  vendor/AMOS/obj/BankStream_AMOS.o \
-	  vendor/AMOS/obj/Bank_AMOS.o \
-	  vendor/AMOS/obj/IDMap_AMOS.o \
-	  vendor/AMOS/obj/utility_AMOS.o
+$(AMOS_OBJ_ALL): %.o: vendor/AMOS/%.cc
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
+	@$(CC) $(CFLAGS) -c -o obj/$@ $<
 
 bin/test_align: $(align) src/align/test_align.cpp
-	@echo [CC] $@
+	@/bin/echo -e "\e[34m  CC $@ \033[0m"
 	@rm -f $@
 	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 clean cleanall:
-	rm -rf bin/*
+	@test -d bin && rm -r bin
+	@test -d obj && rm -r obj
