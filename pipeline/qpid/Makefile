@@ -11,15 +11,7 @@ overlap = src/overlap.cpp
 parser = src/parser/parser.h
 timer = src/timer/timer.h src/timer/timer.cpp
 parsero = src/parsero/parsero.h
-AMOS_OBJ_ALL = Read_AMOS.o \
-	  Sequence_AMOS.o \
-	  Universal_AMOS.o \
-	  Message_AMOS.o \
-	  datatypes_AMOS.o \
-	  BankStream_AMOS.o \
-	  Bank_AMOS.o \
-	  IDMap_AMOS.o \
-	  utility_AMOS.o
+AMOS_OBJ_ALL = Overlap_AMOS.o Read_AMOS.o Sequence_AMOS.o Universal_AMOS.o Message_AMOS.o datatypes_AMOS.o BankStream_AMOS.o Bank_AMOS.o IDMap_AMOS.o utility_AMOS.o
 
 default: prepare bin/overlap
 all: prepare bin/test_nucleo_buffer bin/test_align bin/test_minq bin/test_hash_list bin/test_minimizer bin/overlap

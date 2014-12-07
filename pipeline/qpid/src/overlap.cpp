@@ -6,7 +6,9 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include "AMOS/src/foundation_AMOS.hh"
+#include <utility>
+#include <mutex>
+#include "AMOS/foundation_AMOS.hh"
 #include "./parser/parser.h"
 #include "./timer/timer.h"
 #include "./memory.cpp"
@@ -14,6 +16,13 @@
 #include "./parsero/parsero.h"
 using std::vector;
 using std::string;
+using std::pair;
+
+typedef unsigned int uint;
+typedef void (*output_funptr)(
+    int index1, int index2, int len1, int len2, int score,
+    std::pair<int, int>& start, std::pair<int, int>& end,
+    double errate, bool forward_overlap);
 
 // init fasta/fastq reader
 KSEQ_INIT(gzFile, gzread)
@@ -27,7 +36,11 @@ double MAXIMUM_ERROR_RATE = 0.05;
 char *INPUT_FILE = NULL;
 FILE *OUTPUT_FD = stdout;
 
-typedef unsigned int uint;
+char *BANK_DIR = NULL;
+AMOS::BankStream_t *Bank = NULL;
+std::mutex bank_mutex;
+
+output_funptr output;
 
 ThreadPool* pool;
 
@@ -74,7 +87,7 @@ void read_from_fasta(vector<char *>& string_list, const char *filename) {
     delete timer;
 }
 
-void output_overlap(int index1, int index2, int len1, int len2, int score, std::pair<int, int>& start, std::pair<int, int>& end,
+void output_overlap_file(int index1, int index2, int len1, int len2, int score, pair<int, int>& start, std::pair<int, int>& end,
         double errate, bool forward_overlap) {
 
     int a_hang = abs(len1 - end.first - start.first);
@@ -91,6 +104,42 @@ void output_overlap(int index1, int index2, int len1, int len2, int score, std::
         a_hang,
         b_hang
    );
+}
+
+void output_overlap_bank(int index1, int index2, int len1, int len2, int score, pair<int, int>& start, pair<int, int>& end,
+    double errate, bool forward_overlap) {
+
+  int a_hang = abs(len1 - end.first - start.first);
+  int b_hang = abs(len2 - end.second - start.second);
+  if (start.first > 0) {
+    a_hang *= -1;
+    b_hang *= -1;
+  }
+
+  AMOS::Overlap_t overlap;
+  std::pair<AMOS::ID_t, AMOS::ID_t> read_pair(index1 + 1, index2 + 1);
+
+  if (forward_overlap) {
+    overlap.setAdjacency(AMOS::Overlap_t::NORMAL);
+  } else {
+    overlap.setAdjacency(AMOS::Overlap_t::INNIE);
+  }
+  overlap.setReads(read_pair);
+  overlap.setAhang(a_hang);
+  overlap.setBhang(b_hang);
+
+  //fprintf(OUTPUT_FD, "{OVL adj:%c rds:%d,%d scr:%d ahg:%d bhg:%d }\n",
+      //forward_overlap ? 'N' : 'I',
+      //index1 + 1,
+      //index2 + 1,
+      //score,
+      //a_hang,
+      //b_hang
+  //);
+
+  bank_mutex.lock();
+  (*Bank) << overlap;
+  bank_mutex.unlock();
 }
 
 char base_complement(char base) {
@@ -181,7 +230,7 @@ void find_overlaps_from_offsets(vector<char *>& string_list, int t, const char *
         // output best overlap for previous pair (t, q)
         if (q != last_q) {
             if (best_errate < MAXIMUM_ERROR_RATE) {
-                output_overlap(t, best_q, len_t, best_len_q, best_score, best_start, best_end, best_errate, forward_overlaps);
+                output(t, best_q, len_t, best_len_q, best_score, best_start, best_end, best_errate, forward_overlaps);
             }
             best_score = -1;
             best_errate = 1000;
@@ -202,7 +251,7 @@ void find_overlaps_from_offsets(vector<char *>& string_list, int t, const char *
 
     // output best overlap for last pair (t, q)
     if (best_errate < MAXIMUM_ERROR_RATE) {
-        output_overlap(t, best_q, len_t, best_len_q, best_score, best_start, best_end, best_errate, forward_overlaps);
+        output(t, best_q, len_t, best_len_q, best_score, best_start, best_end, best_errate, forward_overlaps);
     }
 }
 
@@ -282,6 +331,10 @@ void setup_cmd_interface(int argc, char **argv) {
         [] (char *filename) { OUTPUT_FD = fopen(filename, "w"); }
     );
 
+    parsero::add_option("b:", "output bank",
+        [] (char *dirname) { BANK_DIR = dirname; }
+    );
+
     parsero::add_argument("input file",
         [] (char *filename) { INPUT_FILE = filename; }
     );
@@ -292,6 +345,17 @@ void setup_cmd_interface(int argc, char **argv) {
 int main(int argc, char **argv) {
 
     setup_cmd_interface(argc, argv);
+
+    if (BANK_DIR == NULL) {
+      output = &output_overlap_file;
+    } else {
+      Bank = new AMOS::BankStream_t(AMOS::Overlap_t::NCODE);
+      if (!Bank->exists(BANK_DIR)) {
+        Bank->create(BANK_DIR);
+      }
+      Bank->open(BANK_DIR, AMOS::B_WRITE);
+      output = &output_overlap_bank;
+    }
 
     // initialize a thread pool used for finding overlaps
     pool = new ThreadPool(THREADS_NUM);
@@ -307,13 +371,19 @@ int main(int argc, char **argv) {
     }
     mtimer.end();
 
-    Timer ftimer("calculating forward overlaps");
-    find_overlaps(string_list, m, OFFSET_WIGGLE, MERGE_RADIUS, true);
-    ftimer.end();
 
-    Timer btimer("calculating backward overlaps");
-    find_overlaps(string_list, m, OFFSET_WIGGLE, MERGE_RADIUS, false);
-    btimer.end();
+    try {
+      Timer ftimer("calculating forward overlaps");
+      find_overlaps(string_list, m, OFFSET_WIGGLE, MERGE_RADIUS, true);
+      ftimer.end();
+
+      Timer btimer("calculating backward overlaps");
+      find_overlaps(string_list, m, OFFSET_WIGGLE, MERGE_RADIUS, false);
+      btimer.end();
+    } catch (AMOS::Exception_t &e) {
+      fprintf(stderr, "%s:%d %s", e.file(), e.line(), e.what());
+      exit(1);
+    }
 
     // cleaning up the mess
     for (int i = 0, len = string_list.size(); i < len; ++i) {
@@ -324,6 +394,10 @@ int main(int argc, char **argv) {
     delete pool;
 
     fclose(OUTPUT_FD);
+
+    if (Bank != NULL) {
+      Bank->close();
+    }
 
     return 0;
 }
