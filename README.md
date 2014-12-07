@@ -5,7 +5,7 @@ Instalacija
 -----------
 
     git submodule update --init --recursive
-    ./make.sh
+    make
 
 Rikvajrmenti
 ------------
