@@ -1,6 +1,3 @@
-[submodule "pipeline/msa"]
-	path = pipeline/msa
-	url = https://github.com/agrbin/msa
 [submodule "pipeline/qpid/lib/ThreadPool"]
 	path = pipeline/qpid/lib/ThreadPool
 	url = https://github.com/progschj/ThreadPool
