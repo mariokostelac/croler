@@ -22,7 +22,7 @@ prepare:
 
 bin/overlap: overlap.o align.o nucleo_buffer.o minq.o minimizer.o timer.o $(AMOS_OBJ_ALL)
 	@/bin/echo -e "\e[34m  LD $@ \033[0m"
-	@$(CC) $(LDFLAGS) -o $@ $(^:%=obj/%)
+	@$(CC) -o $@ $(^:%=obj/%) $(LDFLAGS)
 
 bin/test_nucleo_buffer: $(nucleo_buffer) src/nucleo_buffer/test_nucleo_buffer.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
