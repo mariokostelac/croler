@@ -1,4 +1,4 @@
-default: run
+default: prepare run
 
 INCLUDE=./src
 VPATH=src:src/layout:src/overlap:src/test:bin
@@ -30,6 +30,10 @@ CC=g++ $(FLAGS) $(DEBUG_FLAGS) -I$(INCLUDE)
 CCE=g++ $(FLAGS) $(DEBUG_FLAGS) -I$(INCLUDE)
 
 TEST=unitigging_test
+
+prepare:
+	@test -d bin || mkdir bin
+	@test -d obj || mkdir obj
 
 clean:
 	rm bin/*

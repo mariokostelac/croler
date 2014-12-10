@@ -27,6 +27,12 @@ EXE=msa count-n
 # makefile. it will rebuild these targets anyway.
 .PHONY: test clean
 
+default: prepare exe
+
+prepare:
+	@test -d bin || mkdir bin
+	@test -d obj || mkdir obj
+
 exe: $(EXE)
 
 test: $(TEST)
