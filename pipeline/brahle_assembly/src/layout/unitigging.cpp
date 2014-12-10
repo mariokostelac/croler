@@ -126,6 +126,7 @@ inline void Unitigging::removeTransitiveEdges() {
   }
   brs.Finalize();
 
+  puts("Better read set finalized");
   std::vector< size_t > erased;
   erased.reserve(no_contains_->size());
   for (size_t i = 0; i < no_contains_->size(); ++i) {
@@ -161,6 +162,7 @@ inline void Unitigging::removeTransitiveEdges() {
     }
   }
 
+  puts("Transitives marked erased");
   no_transitives_ = BetterOverlapSetPtr(new BetterOverlapSet(reads_));
   size_t idx = 0;
   for (size_t i = 0; i < no_contains_->size(); ++i) {
@@ -200,6 +202,17 @@ void Unitigging::makeContigs() {
 
   UnionFind uf(reads_->size());
   BetterReadSet brs(reads_, 1);
+  // @mculinovic adding overlaps
+  for (size_t i = 0; i < no_transitives_->size(); ++i) {
+    auto better_overlap = (*no_transitives_)[i];
+    auto overlap = better_overlap->overlap();
+    brs[overlap->read_one]->AddOverlap(better_overlap);
+    brs[overlap->read_two]->AddOverlap(better_overlap);
+  }
+  brs.Finalize();
+  // end adding overlaps
+
+  // create contigs from reads
   contigs_ = ContigSetPtr(new ContigSet(&brs));
 
   for (size_t i = 0; i < no_transitives_->size(); ++i) {
