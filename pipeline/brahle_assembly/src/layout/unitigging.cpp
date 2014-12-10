@@ -126,7 +126,6 @@ inline void Unitigging::removeTransitiveEdges() {
   }
   brs.Finalize();
 
-  puts("Better read set finalized");
   std::vector< size_t > erased;
   erased.reserve(no_contains_->size());
   for (size_t i = 0; i < no_contains_->size(); ++i) {
@@ -162,7 +161,6 @@ inline void Unitigging::removeTransitiveEdges() {
     }
   }
 
-  puts("Transitives marked erased");
   no_transitives_ = BetterOverlapSetPtr(new BetterOverlapSet(reads_));
   size_t idx = 0;
   for (size_t i = 0; i < no_contains_->size(); ++i) {

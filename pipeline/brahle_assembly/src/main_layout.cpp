@@ -77,17 +77,6 @@ int main(int argc, char *argv[]) {
       layout::ReadOverlapsAfg(reads.get(), overlaps_file));
   fprintf(stderr, "Number of overlaps = %u\n", overlaps->size());
 
-  // create map for overlaps
-  // @mculinovic
-  std::map< std::pair<uint32_t, uint32_t>, uint32_t> overlaps_map; 
-  size_t overlaps_size = (*overlaps).size();
-  for (size_t i = 0; i < overlaps_size; ++i) {
-      overlap::Overlap* overlap = (*overlaps)[i];
-      std::pair <uint32_t, uint32_t> key = std::make_pair(overlap->read_one, overlap->read_two);
-      overlaps_map[key] = (overlap->len_one + overlap->len_two) / 2;
-  }
-  // end creating map  
-
   clock_t start = clock();
   std::shared_ptr< layout::Unitigging > u(
       new layout::Unitigging(reads.get(), overlaps.get()));
@@ -112,7 +101,6 @@ int main(int argc, char *argv[]) {
 
   // output afg
   // @mculinovic
-  // TODO(mculinovic) ugly output
   FILE *afg_file = fopen("layout.afg", "w");
 
   std::shared_ptr<layout::ContigSet> contigs = u->contigs();
@@ -124,25 +112,16 @@ int main(int argc, char *argv[]) {
       fprintf(afg_file, "{LAY\n");
       uint32_t offset = 0;
       const std::deque< layout::BetterRead* > &reads = (*contigs)[i]->getReads();
-      if (reads.size() == 1) {
-          fprintf(afg_file, "{TLE\n");
-          fprintf(afg_file, "clr:%u,%u\n", 0, reads[0]->read()->size());
-          fprintf(afg_file, "off:0\n");
-          fprintf(afg_file, "src:%d\n}\n}\n", reads[0]->read()->id());
-          continue;
-      }
 
       int num_reads = reads.size();
-      // printf("Reads size: %d\n", num_reads);
       for (int j = 0; j < num_reads - 1; ++j) {
           layout::BetterRead* read1 = reads[j];
           layout::BetterRead* read2 = reads[j + 1];
           read1->Finalize();
-          // doesn't work - overlaps.size is 0
-          //const std::vector< std::pair< uint32_t, layout::BetterOverlap* >> &overlaps = read1->overlaps();
+          const std::vector< std::pair< uint32_t, layout::BetterOverlap* >> &overlaps = read1->overlaps();
 
           // find overlap between first and second read
-/*          for (const auto& overlap: overlaps) {
+          for (const auto& overlap: overlaps) {
               if (overlap.first == read2->id() && overlap.second != nullptr) {
                   fprintf(afg_file, "{TLE\n");
                   fprintf(afg_file, "clr:%u,%u\n", 0, read1->read()->size());
@@ -151,21 +130,10 @@ int main(int argc, char *argv[]) {
                   offset += read1->read()->size() - overlap.second->Length();
                   break;
               }
-          }*/
-
-          // workaround - access overlap in overlaps_map
-          std::map< std::pair<uint32_t, uint32_t>, uint32_t>::iterator it;
-          // printf("%d %d\n", read1->read()->id(),read2->read()->id());
-          // why opposite (read2, read1) instead of (read1, read2) ????
-          it = overlaps_map.find(std::make_pair(read2->read()->id(), read1->read()->id()));
-          if (it != overlaps_map.end()) {
-              fprintf(afg_file, "{TLE\n");
-              fprintf(afg_file, "clr:%u,%u\n", 0, read1->read()->size());
-              fprintf(afg_file, "off:%u\n", offset);
-              fprintf(afg_file, "src:%d\n}\n", read1->read()->id()); 
-              offset += read1->read()->size() - it->second;
           }
       }
+
+      // output last read
       layout::BetterRead* read = reads[num_reads - 1];
       fprintf(afg_file, "{TLE\n");
       fprintf(afg_file, "clr:%u,%u\n", 0, read->read()->size());
