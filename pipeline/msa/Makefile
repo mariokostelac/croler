@@ -1,5 +1,6 @@
 INCLUDE=-I./src
-CFLAGS=-O3 -flto --std=c++11 -Wall -Wextra -Werror -pedantic
+#CFLAGS=-O3 -flto --std=c++11 -Wall -Wextra -Werror -pedantic
+CFLAGS=-O3 -flto --std=c++11
 
 CC=g++ $(CFLAGS) $(INCLUDE)
 VPATH=src:bin
@@ -31,7 +32,7 @@ default: prepare exe
 
 prepare:
 	@test -d bin || mkdir bin
-	@test -d obj || mkdir obj
+
 
 exe: $(EXE)
 

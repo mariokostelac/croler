@@ -33,7 +33,7 @@ TEST=unitigging_test
 
 prepare:
 	@test -d bin || mkdir bin
-	@test -d obj || mkdir obj
+
 
 clean:
 	rm bin/*
