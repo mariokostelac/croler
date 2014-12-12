@@ -1,5 +1,7 @@
 default: prepare build
 
+VPATH=obj
+
 ALL_OBJ = Overlap_AMOS.o \
 					Read_AMOS.o \
 					Sequence_AMOS.o \
