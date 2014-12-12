@@ -3,6 +3,8 @@ CFLAGS = -g -Wall -std=c++11 -O2 -I vendor/
 CFLAGS_AMOS = -Wno-deprecated -O2
 LDFLAGS = -lz -pthread
 
+.PHONY = amos
+
 align = src/align/align.h src/align/align.cpp
 minq = src/fixed_min_queue/fixed_min_queue.cpp
 nucleo_buffer = src/nucleo_buffer/nucleo_buffer.cpp src/nucleo_buffer/nucleo_buffer.h
@@ -12,18 +14,30 @@ overlap = src/overlap.cpp
 parser = src/parser/parser.h
 timer = src/timer/timer.h src/timer/timer.cpp
 parsero = src/parsero/parsero.h
-AMOS_OBJ_ALL = Overlap_AMOS.o Read_AMOS.o Sequence_AMOS.o Universal_AMOS.o Message_AMOS.o datatypes_AMOS.o BankStream_AMOS.o Bank_AMOS.o IDMap_AMOS.o utility_AMOS.o
+AMOS_OBJ_ALL = vendor/AMOS/obj/Overlap_AMOS.o \
+							 vendor/AMOS/obj/Read_AMOS.o \
+							 vendor/AMOS/obj/Sequence_AMOS.o \
+							 vendor/AMOS/obj/Universal_AMOS.o \
+							 vendor/AMOS/obj/Message_AMOS.o \
+							 vendor/AMOS/obj/datatypes_AMOS.o \
+							 vendor/AMOS/obj/BankStream_AMOS.o \
+							 vendor/AMOS/obj/Bank_AMOS.o \
+							 vendor/AMOS/obj/IDMap_AMOS.o \
+							 vendor/AMOS/obj/utility_AMOS.o
 
-default: prepare bin/overlap
+default: amos prepare bin/overlap
 all: prepare bin/test_nucleo_buffer bin/test_align bin/test_minq bin/test_hash_list bin/test_minimizer bin/overlap
 
 prepare:
 	@test -d bin || mkdir bin
 	@test -d obj || mkdir obj
 
-bin/overlap: overlap.o align.o nucleo_buffer.o minq.o minimizer.o timer.o $(AMOS_OBJ_ALL)
+amos:
+	$(MAKE) -C vendor/AMOS
+
+bin/overlap: overlap.o align.o nucleo_buffer.o minq.o minimizer.o timer.o
 	@/bin/echo -e "\e[34m  LD $@ \033[0m"
-	@$(CC) -o $@ $(^:%=obj/%) $(LDFLAGS)
+	@$(CC) -o $@ $(AMOS_OBJ_ALL) $(^:%=obj/%) $(LDFLAGS)
 
 bin/test_nucleo_buffer: $(nucleo_buffer) src/nucleo_buffer/test_nucleo_buffer.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
@@ -68,10 +82,6 @@ minimizer.o: src/minimizer/minimizer.cpp
 timer.o: src/timer/timer.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
 	@$(CC) $(CFLAGS) -c -o obj/$@ $<
-
-$(AMOS_OBJ_ALL): %.o: vendor/AMOS/%.cc
-	@/bin/echo -e "\e[34m  CC $@ \033[0m"
-	@$(CC) $(CFLAGS_AMOS) -c -o obj/$@ $<
 
 bin/test_align: $(align) src/align/test_align.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"

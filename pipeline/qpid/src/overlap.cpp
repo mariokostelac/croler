@@ -8,7 +8,7 @@
 #include <string>
 #include <utility>
 #include <mutex>
-#include "AMOS/foundation_AMOS.hh"
+#include "AMOS/src/foundation_AMOS.hh"
 #include "./parser/parser.h"
 #include "./timer/timer.h"
 #include "./memory.cpp"
