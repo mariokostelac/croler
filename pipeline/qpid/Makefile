@@ -3,6 +3,8 @@ CFLAGS = -g -Wall -std=c++11 -O2 -I vendor/
 CFLAGS_AMOS = -Wno-deprecated -O2
 LDFLAGS = -lz -pthread
 
+VPATH=obj:bin:src
+
 .PHONY = amos
 
 align = src/align/align.h src/align/align.cpp
@@ -33,7 +35,7 @@ prepare:
 	@test -d obj || mkdir obj
 
 amos:
-	$(MAKE) -C vendor/AMOS
+	@$(MAKE) -C vendor/AMOS
 
 bin/overlap: overlap.o align.o nucleo_buffer.o minq.o minimizer.o timer.o
 	@/bin/echo -e "\e[34m  LD $@ \033[0m"
