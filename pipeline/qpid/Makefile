@@ -1,5 +1,6 @@
 CC = g++
 CFLAGS = -g -Wall -std=c++11 -O2 -I vendor/
+CFLAGS_AMOS = -Wno-deprecated -O2
 LDFLAGS = -lz -pthread
 
 align = src/align/align.h src/align/align.cpp
@@ -70,7 +71,7 @@ timer.o: src/timer/timer.cpp
 
 $(AMOS_OBJ_ALL): %.o: vendor/AMOS/%.cc
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
-	@$(CC) $(CFLAGS) -c -o obj/$@ $<
+	@$(CC) $(CFLAGS_AMOS) -c -o obj/$@ $<
 
 bin/test_align: $(align) src/align/test_align.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
