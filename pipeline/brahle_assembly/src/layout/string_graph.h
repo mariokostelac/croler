@@ -117,7 +117,7 @@ class Graph {
     uint32_t first_edge_, last_edge_;
   };
 
-  std::vector< std::shared_ptr< Vertex > > vertices_;
+  //std::vector< std::shared_ptr< Vertex > > vertices_;
   std::vector< std::shared_ptr< Edge > > edges_;
   std::map< uint32_t, uint32_t > id_to_vertex_map_;
   bool finalized_;
@@ -128,6 +128,9 @@ class Graph {
   Graph();
 
  public:
+  std::vector< std::shared_ptr< Vertex > > vertices_;
+
+
   /**
    * Destructor.
    */
@@ -157,21 +160,29 @@ class Graph {
       g.vertices_.push_back(
           std::shared_ptr< Vertex >(new Vertex(read, read->id(), g)));
     }
+
     for (auto overlap : *overlaps_) {
-      g.edges_.push_back(
-          std::shared_ptr< Edge >(
-              new Edge(
+      std::shared_ptr< Edge > edge_one(new Edge(
                   overlap,
                   g.edges_.size(),
                   overlap->overlap()->read_one,
-                  g)));
-      g.edges_.push_back(
-          std::shared_ptr< Edge >(
-              new Edge(
+                  g));
+
+      g.edges_.push_back(edge_one);
+      g.getVertex(overlap->overlap()->read_one)->AddEdge(
+                                      edge_one,
+                                      Label::Direction::FROM_ONE_TO_TWO);
+
+      std::shared_ptr< Edge > edge_two(new Edge(
                   overlap,
                   g.edges_.size(),
                   overlap->overlap()->read_two,
-                  g)));
+                  g));
+
+      g.edges_.push_back(edge_two);
+      g.getVertex(overlap->overlap()->read_two)->AddEdge(
+                                      edge_two,
+                                      Label::Direction::FROM_TWO_TO_ONE);
     }
     g.finalize();
     return g;
