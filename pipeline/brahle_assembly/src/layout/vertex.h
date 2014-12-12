@@ -6,12 +6,17 @@
 #include <overlap/read.h>
 
 #include <layout/better_read.h>
+#include <layout/label.h>
 
 #include <string>
+#include <vector>
 
 namespace layout {
 
 class Graph;
+class Edge;
+
+typedef layout::Label::Direction DIR;
 
 /**
  * A vertex in a string graph.
@@ -21,6 +26,11 @@ class Vertex {
   StringPtr data_;
   uint32_t id_;
   const Graph& graph_;
+
+  // edges with label direction FROM_ONE_TO_TWO
+  std::vector <std::shared_ptr< Edge > > edges_dir1_;
+  // edges with label direction FROM_TWO_TO_ONE
+  std::vector <std::shared_ptr< Edge > > edges_dir2_;
 
  public:
   /**
@@ -57,6 +67,21 @@ class Vertex {
    * User-friendly name of the vertex. Usually just ID.
    */
   virtual const std::string getName() const;
+
+  /**
+    * Adds edge to edge vector in given direction
+    */
+  void AddEdge(std::shared_ptr< Edge > edge, DIR dir);
+
+  /**
+   * Returns number of edges of vertex with direction Label::Direction::FROM_ONE_TO_TWO
+   */
+  const uint32_t count_edges_dir1() const { return edges_dir1_.size() ;}
+
+  /**
+   * Returns number of edges of vertex with direction Label::Direction::FROM_TWO_TO_ONE
+   */
+  const uint32_t count_edges_dir2() const { return edges_dir2_.size() ;}
 };
 
 };  // namespace layout
