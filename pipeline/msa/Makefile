@@ -1,5 +1,6 @@
 INCLUDE=-I./src
-CFLAGS=-O3 -flto --std=c++11 -Wall -Wextra -Werror -pedantic
+#CFLAGS=-O3 -flto --std=c++11 -Wall -Wextra -Werror -pedantic
+CFLAGS=-O3 -flto --std=c++11
 
 CC=g++ $(CFLAGS) $(INCLUDE)
 VPATH=src:bin
@@ -26,6 +27,12 @@ EXE=msa count-n
 # if there will be a file called test or clean, don't confuse
 # makefile. it will rebuild these targets anyway.
 .PHONY: test clean
+
+default: prepare exe
+
+prepare:
+	@test -d bin || mkdir bin
+
 
 exe: $(EXE)
 
