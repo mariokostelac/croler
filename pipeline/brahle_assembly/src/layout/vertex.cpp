@@ -3,11 +3,12 @@
 #include <string>
 
 #include "layout/vertex.h"
+#include "layout/string_graph.h"
 
 namespace layout {
 
 Vertex::Vertex(BetterRead* read, uint32_t id, const Graph& graph) :
-    data_(read->read()), id_(id), graph_(graph) {
+    data_(read->read()), id_(id), graph_(graph), marked_(false) {
         edges_dir1_.reserve(10);
         edges_dir2_.reserve(10);
 }
@@ -27,6 +28,20 @@ void Vertex::AddEdge(std::shared_ptr< Edge > edge, DIR dir) {
   } else {
     edges_dir2_.emplace_back(edge);
   }
+}
+
+void Vertex::markEdges() {
+    if (edges_dir1_.size() == 0) {
+      for (auto const& edge: edges_dir2_) {
+        edge->mark();
+      }
+      edges_dir2_.clear();
+    } else {
+      for (auto const&edge: edges_dir1_) {
+        edge->mark();
+      }
+      edges_dir1_.clear();
+    }
 }
 
 };  // namespace layout

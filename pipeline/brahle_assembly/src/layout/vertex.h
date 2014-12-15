@@ -26,6 +26,7 @@ class Vertex {
   StringPtr data_;
   uint32_t id_;
   const Graph& graph_;
+  bool marked_;
 
   // edges with label direction FROM_ONE_TO_TWO
   std::vector <std::shared_ptr< Edge > > edges_dir1_;
@@ -82,6 +83,21 @@ class Vertex {
    * Returns number of edges of vertex with direction Label::Direction::FROM_TWO_TO_ONE
    */
   const uint32_t count_edges_dir2() const { return edges_dir2_.size() ;}
+
+  /**
+   * Mark vertex for removal
+   */
+  void mark() {marked_ = true ;}
+
+  /**
+   * Check if vertex is marked for removal
+   */
+  bool isMarked() {return marked_ ;}
+
+  /**
+   * Mark correspondig edges for removal
+   */
+  void markEdges();
 };
 
 };  // namespace layout

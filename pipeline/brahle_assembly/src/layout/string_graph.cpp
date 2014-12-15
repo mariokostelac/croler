@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <string>
+#include <vector>
+#include <map>
 
 #include "layout/string_graph.h"
 
@@ -72,6 +74,79 @@ void Graph::printToGraphviz(FILE* file) const {
         edge->getFormatedName().c_str());
   }
   fprintf(file, "};\n");
+}
+
+void Graph::trim() {
+  uint32_t disconnected_ctr = 0;
+  uint32_t tips_ctr = 0;
+
+  fprintf(stderr, "vertices: %d\n", vertices_.size());
+  fprintf(stderr, "map: %d\n", id_to_vertex_map_.size());
+  fprintf(stderr, "edges: %d\n", edges_.size());
+  fprintf(stderr, "threshold: %d\n", trimSeqLenThreshold);
+
+
+  for (auto const& vertex: vertices_) {
+
+    // check threshold
+    if (vertex->data()->size() > trimSeqLenThreshold)
+      continue;
+
+    // check if disconnected
+    if (vertex->count_edges_dir1() == 0 && vertex->count_edges_dir2() == 0) {
+      vertex->mark();
+      ++disconnected_ctr;
+      continue;
+    }
+
+    // check if tip
+    if (vertex->count_edges_dir1() == 0 || vertex->count_edges_dir2() == 0) {
+      vertex->mark();
+      vertex->markEdges();
+      ++tips_ctr;
+    }
+  }
+
+  if (disconnected_ctr == 0 && tips_ctr == 0) return;
+
+  std::vector< std::shared_ptr< Vertex > > vertices_temp;
+  std::vector< std::shared_ptr< Edge > > edges_temp;
+  std::map< uint32_t, uint32_t > id_to_vertex_map_temp;
+
+  // delete vertices from graph
+  size_t num_vertices = vertices_.size();
+  for (size_t i = 0, j = 0; i < num_vertices; ++i) {
+    if (vertices_[i]->isMarked()) {
+      vertices_[i].reset();
+    } else {
+      vertices_temp.emplace_back(vertices_[i]);
+      id_to_vertex_map_temp[vertices_[i]->id()] = j++;
+    }
+  }
+
+  // delete edges from graph
+  size_t num_edges = edges_.size();
+  for (size_t i = 0; i < num_edges; ++i) {
+    if (edges_[i]->isMarked()) {
+      edges_[i].reset();
+    } else {
+      edges_temp.emplace_back(edges_[i]);
+    }
+  }
+
+  vertices_.clear();
+  vertices_ = vertices_temp;
+  edges_.clear();
+  edges_ = edges_temp;
+  id_to_vertex_map_.clear();
+  id_to_vertex_map_ = id_to_vertex_map_temp;
+
+  fprintf(stderr, "vertices: %d\n", vertices_.size());
+  fprintf(stderr, "map: %d\n", id_to_vertex_map_.size());
+  fprintf(stderr, "edges: %d\n", edges_.size());
+
+  fprintf(stderr, "Removed %d tips and %d disconnected vertices\n",
+                   tips_ctr, disconnected_ctr);
 }
 
 };  // namespace layout
