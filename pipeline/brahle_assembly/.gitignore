@@ -9,3 +9,4 @@ callgrind.out.*
 massif.out.*
 *.out
 .#*
+build-number.txt

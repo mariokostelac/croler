@@ -8,7 +8,7 @@
 #include <string>
 #include <utility>
 #include <mutex>
-#include "AMOS/foundation_AMOS.hh"
+#include "AMOS/src/foundation_AMOS.hh"
 #include "./parser/parser.h"
 #include "./timer/timer.h"
 #include "./memory.cpp"
@@ -36,8 +36,9 @@ double MAXIMUM_ERROR_RATE = 0.05;
 char *INPUT_FILE = NULL;
 FILE *OUTPUT_FD = stdout;
 
-char *BANK_DIR = NULL;
-AMOS::BankStream_t *Bank = NULL;
+char *BANK_INPUT = NULL;
+char *BANK_OUTPUT = NULL;
+AMOS::BankStream_t *bank_output = NULL;
 std::mutex bank_mutex;
 
 output_funptr output;
@@ -51,19 +52,26 @@ bool sort_offsets(offset_t a, offset_t b) {
     return a.index < b.index;
 }
 
-void read_from_bank(vector<char *>& string_list, AMOS::BankStream_t& read_bank) {
+void read_from_bank(vector<const char *>& reads, const char *bank_name) {
+
+  AMOS::BankStream_t bank(AMOS::Read_t::NCODE);
+  assert(bank.exists(bank_name));
+
+  bank.open(bank_name, AMOS::B_READ);
+
   AMOS::Read_t read;
-  read_bank.seekg(0, AMOS::BankStream_t::BEGIN);
-  while (read_bank >> read) {
+  bank.seekg(0, AMOS::BankStream_t::BEGIN);
+  while (bank >> read) {
     AMOS::Range_t clear = read.getClearRange();
     string seq = read.getSeqString(clear);
-    //clr_list.push_back(clear);
-    //s.push_back(tmp);
+    reads.push_back(strdup(seq.c_str()));
   }
+
+  bank.close();
   return;
 }
 
-void read_from_fasta(vector<char *>& string_list, const char *filename) {
+void read_from_fasta(vector<const char *>& string_list, const char *filename) {
     Timer* timer = new Timer("reading");
 
     fprintf(stderr, "* Reading from file %s...\n", filename);
@@ -80,8 +88,6 @@ void read_from_fasta(vector<char *>& string_list, const char *filename) {
 
     kseq_destroy(seq);      // STEP 5: destroy seq
     gzclose(fp);            // STEP 6: close the file handler
-
-    fprintf(stderr, "* Read %lu strings...\n", string_list.size());
 
     timer->end(true);
     delete timer;
@@ -138,7 +144,7 @@ void output_overlap_bank(int index1, int index2, int len1, int len2, int score, 
   //);
 
   bank_mutex.lock();
-  (*Bank) << overlap;
+  (*bank_output) << overlap;
   bank_mutex.unlock();
 }
 
@@ -200,7 +206,7 @@ void merge_offsets(vector<offset_t>& offsets, uint radius) {
     offsets.resize(curr + 1);
 }
 
-void find_overlaps_from_offsets(vector<char *>& string_list, int t, const char *target, vector<offset_t>& offsets,
+void find_overlaps_from_offsets(vector<const char *>& string_list, int t, const char *target, vector<offset_t>& offsets,
         overlap_band_t* band = NULL, bool forward_overlaps = true) {
 
     if (offsets.size() == 0) return;
@@ -255,7 +261,7 @@ void find_overlaps_from_offsets(vector<char *>& string_list, int t, const char *
     }
 }
 
-void find_overlaps(vector<char *>& string_list, Minimizer *minimizer, int wiggle, int merge_radius, bool forward_overlaps = true) {
+void find_overlaps(vector<const char *>& string_list, Minimizer *minimizer, int wiggle, int merge_radius, bool forward_overlaps = true) {
 
     // find longest string so we could create band
     unsigned long max_len = 0;
@@ -270,7 +276,7 @@ void find_overlaps(vector<char *>& string_list, Minimizer *minimizer, int wiggle
 
         results.push_back(pool->enqueue([&string_list, forward_overlaps, max_len, wiggle, merge_radius, &minimizer, &minimizers, t]() {
 
-            char *target = forward_overlaps ? string_list[t] : reversed_complement(string_list[t]);
+            const char *target = forward_overlaps ? string_list[t] : reversed_complement(string_list[t]);
             overlap_band_t band(max_len + 1, max_len + 1);
             vector<minimizer_t> curr_minimizers;
             vector<offset_t> curr_offsets;
@@ -327,15 +333,19 @@ void setup_cmd_interface(int argc, char **argv) {
         [] (char *option) { sscanf(option, "%lf", &MAXIMUM_ERROR_RATE); }
     );
 
-    parsero::add_option("o:", "output file",
+    parsero::add_option("O:", "output file",
         [] (char *filename) { OUTPUT_FD = fopen(filename, "w"); }
     );
 
-    parsero::add_option("b:", "output bank",
-        [] (char *dirname) { BANK_DIR = dirname; }
+    parsero::add_option("B:", "output bank",
+        [] (char *dirname) { BANK_OUTPUT = dirname; }
     );
 
-    parsero::add_argument("input file",
+    parsero::add_option("b:", "input bank",
+        [] (char *dirname) { BANK_INPUT = dirname; }
+    );
+
+    parsero::add_option("f:", "input file",
         [] (char *filename) { INPUT_FILE = filename; }
     );
 
@@ -346,31 +356,42 @@ int main(int argc, char **argv) {
 
     setup_cmd_interface(argc, argv);
 
-    if (BANK_DIR == NULL) {
-      output = &output_overlap_file;
-    } else {
-      Bank = new AMOS::BankStream_t(AMOS::Overlap_t::NCODE);
-      if (!Bank->exists(BANK_DIR)) {
-        Bank->create(BANK_DIR);
-      }
-      Bank->open(BANK_DIR, AMOS::B_WRITE);
-      output = &output_overlap_bank;
-    }
+    vector<const char *> string_list;
 
     // initialize a thread pool used for finding overlaps
     pool = new ThreadPool(THREADS_NUM);
 
-    vector<char *> string_list;
-    read_from_fasta(string_list, INPUT_FILE);
+    // read rads
+    if (BANK_INPUT == NULL) {
+      // read the data
+      read_from_fasta(string_list, INPUT_FILE);
+    } else {
+      // read the data
+      read_from_bank(string_list, BANK_INPUT);
+    }
+
+    fprintf(stderr, "* Read %lu strings...\n", string_list.size());
+
+    // setup output
+    if (BANK_OUTPUT == NULL) {
+      output = &output_overlap_file;
+    } else {
+      bank_output = new AMOS::BankStream_t(AMOS::Overlap_t::NCODE);
+      if (!bank_output->exists(BANK_OUTPUT)) {
+        fprintf(stderr, "Output bank did not exist. Creating bank %s\n", BANK_OUTPUT);
+        bank_output->create(BANK_OUTPUT);
+      }
+      bank_output->open(BANK_OUTPUT, AMOS::B_WRITE);
+      output = &output_overlap_bank;
+    }
 
     Minimizer *m = new Minimizer(16, 20);
 
     Timer mtimer("calculating minimizers");
     for (int i = 0, len = string_list.size(); i < len; ++i) {
-        m->calculate_and_store(i, string_list[i]);
+      m->calculate_and_store(i, string_list[i]);
     }
     mtimer.end();
-
 
     try {
       Timer ftimer("calculating forward overlaps");
@@ -395,8 +416,8 @@ int main(int argc, char **argv) {
 
     fclose(OUTPUT_FD);
 
-    if (Bank != NULL) {
-      Bank->close();
+    if (bank_output != NULL) {
+      bank_output->close();
     }
 
     return 0;
