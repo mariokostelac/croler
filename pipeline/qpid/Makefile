@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -Wall -std=c++11 -O2 -I vendor/
+CFLAGS = -g -Wall -std=c++11 -O2 -I ./vendor -I ./src
 CFLAGS_AMOS = -Wno-deprecated -O2
 LDFLAGS = -lz -pthread
 
@@ -7,14 +7,14 @@ VPATH=obj:bin:src
 
 .PHONY = amos
 
-align = src/align/align.h src/align/align.cpp
-minq = src/fixed_min_queue/fixed_min_queue.cpp
-nucleo_buffer = src/nucleo_buffer/nucleo_buffer.cpp src/nucleo_buffer/nucleo_buffer.h
-hash_list = src/hash_list/hash_list.cpp
-minimizer = src/minimizer/minimizer.h src/minimizer/minimizer.cpp $(hash_list) $(nucleo_buffer)
-overlap = src/overlap.cpp
-parser = src/parser/parser.h
-timer = src/timer/timer.h src/timer/timer.cpp
+align = align/align.h align/align.cpp
+minq = fixed_min_queue/fixed_min_queue.cpp
+nucleo_buffer = nucleo_buffer/nucleo_buffer.cpp nucleo_buffer/nucleo_buffer.h
+hash_list = hash_list/hash_list.cpp
+minimizer = minimizer/minimizer.h minimizer/minimizer.cpp $(hash_list) $(nucleo_buffer)
+overlap = overlap.cpp
+parser = parser/parser.h
+timer = timer/timer.h timer/timer.cpp
 parsero = src/parsero/parsero.h
 AMOS_OBJ_ALL = vendor/AMOS/obj/Overlap_AMOS.o \
 							 vendor/AMOS/obj/Read_AMOS.o \
@@ -37,9 +37,9 @@ prepare:
 amos:
 	@$(MAKE) -C vendor/AMOS
 
-bin/overlap: overlap.o align.o nucleo_buffer.o minq.o minimizer.o timer.o
+bin/overlap: $(addprefix obj/,overlap.o align.o nucleo_buffer.o minq.o minimizer.o timer.o)
 	@/bin/echo -e "\e[34m  LD $@ \033[0m"
-	@$(CC) -o $@ $(AMOS_OBJ_ALL) $(^:%=obj/%) $(LDFLAGS)
+	@$(CC) -o $@ $(AMOS_OBJ_ALL) $^ $(LDFLAGS)
 
 bin/test_nucleo_buffer: $(nucleo_buffer) src/nucleo_buffer/test_nucleo_buffer.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
@@ -61,29 +61,29 @@ bin/test_minimizer: $(minimizer) src/minimizer/test_minimizer.cpp
 	@rm -f $@
 	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-align.o: src/align/align.cpp
+obj/align.o: src/align/align.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
-	@$(CC) $(CFLAGS) -c -o obj/$@ $<
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
-nucleo_buffer.o: src/nucleo_buffer/nucleo_buffer.cpp
+obj/nucleo_buffer.o: src/nucleo_buffer/nucleo_buffer.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
-	@$(CC) $(CFLAGS) -c -o obj/$@ $<
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
-overlap.o: src/overlap.cpp
+obj/overlap.o: src/overlap.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
-	@$(CC) $(CFLAGS) -c -o obj/$@ $<
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
-minq.o: src/fixed_min_queue/fixed_min_queue.cpp
+obj/minq.o: src/fixed_min_queue/fixed_min_queue.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
-	@$(CC) $(CFLAGS) -c -o obj/$@ $<
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
-minimizer.o: src/minimizer/minimizer.cpp
+obj/minimizer.o: src/minimizer/minimizer.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
-	@$(CC) $(CFLAGS) -c -o obj/$@ $^
+	@$(CC) $(CFLAGS) -c -o $@ $^
 
-timer.o: src/timer/timer.cpp
+obj/timer.o: src/timer/timer.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
-	@$(CC) $(CFLAGS) -c -o obj/$@ $<
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
 bin/test_align: $(align) src/align/test_align.cpp
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
