@@ -97,6 +97,7 @@ int main(int argc, char *argv[]) {
       (clock() - start) / static_cast<double>(CLOCKS_PER_SEC));
 
   g.printToGraphviz(graphviz_file);
+  g.trim();
 
 
   // output afg
@@ -121,12 +122,12 @@ int main(int argc, char *argv[]) {
           const std::vector< std::pair< uint32_t, layout::BetterOverlap* >> &overlaps = read1->overlaps();
 
           // find overlap between first and second read
-          for (const auto& overlap: overlaps) {
+          for (auto const& overlap: overlaps) {
               if (overlap.first == read2->id() && overlap.second != nullptr) {
                   fprintf(afg_file, "{TLE\n");
                   fprintf(afg_file, "clr:%u,%u\n", 0, read1->read()->size());
                   fprintf(afg_file, "off:%u\n", offset);
-                  fprintf(afg_file, "src:%d\n}\n", read1->read()->id()); 
+                  fprintf(afg_file, "src:%d\n}\n", read1->read()->id());
                   offset += read1->read()->size() - overlap.second->Length();
                   break;
               }
@@ -139,7 +140,6 @@ int main(int argc, char *argv[]) {
       fprintf(afg_file, "clr:%u,%u\n", 0, read->read()->size());
       fprintf(afg_file, "off:%u\n", offset);
       fprintf(afg_file, "src:%d\n}\n", read->read()->id());
-
       fprintf(afg_file, "}\n");
   }
 

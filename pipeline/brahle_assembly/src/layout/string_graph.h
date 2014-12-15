@@ -84,12 +84,23 @@ class Edge {
    */
   virtual const std::string getFormatedName() const;
 
+  /**
+   * Mark edge for removal
+   */
+  void mark() { marked_ = true ;}
+
+  /**
+   * Check if edge is marked for removal
+   */
+  bool isMarked() { return marked_ ;}
+
  private:
   uint32_t id_;
   const Graph& graph_;
   std::shared_ptr< Vertex > A_, B_;
   Label label_;
   Type type_;
+  bool marked_;
 };
 
 /**
@@ -117,10 +128,11 @@ class Graph {
     uint32_t first_edge_, last_edge_;
   };
 
-  //std::vector< std::shared_ptr< Vertex > > vertices_;
+  std::vector< std::shared_ptr< Vertex > > vertices_;
   std::vector< std::shared_ptr< Edge > > edges_;
   std::map< uint32_t, uint32_t > id_to_vertex_map_;
   bool finalized_;
+  static const uint32_t trimSeqLenThreshold = 300;
 
   /**
    * Default constructor is private (by design). Use Graph::create() instead.
@@ -128,9 +140,6 @@ class Graph {
   Graph();
 
  public:
-  std::vector< std::shared_ptr< Vertex > > vertices_;
-
-
   /**
    * Destructor.
    */
@@ -185,6 +194,14 @@ class Graph {
                                       Label::Direction::FROM_TWO_TO_ONE);
     }
     g.finalize();
+
+    uint32_t cnt = 0;
+    for (auto const& vertex: g.vertices_) {
+      uint32_t num = vertex->count_edges_dir1() + vertex->count_edges_dir2();
+      cnt += num;
+      fprintf(stderr, "Vertex edges, seq len: %d, %d\n", num, vertex->data()->size());
+    }
+    fprintf(stderr, "Edges: %d %d\n", g.edges_.size(), cnt);
     return g;
   }
 
@@ -192,6 +209,11 @@ class Graph {
    * Prints the graph to the given file.
    */
   void printToGraphviz(FILE* file) const;
+
+  /**
+   * Removes tips and disconnected vertices from graph.
+   */
+  void trim();
 };
 
 };  // namespace layout
