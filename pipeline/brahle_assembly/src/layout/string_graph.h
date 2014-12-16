@@ -132,7 +132,7 @@ class Graph {
   std::vector< std::shared_ptr< Edge > > edges_;
   std::map< uint32_t, uint32_t > id_to_vertex_map_;
   bool finalized_;
-  static const uint32_t trimSeqLenThreshold = 300;
+  static const uint32_t trimSeqLenThreshold = 600;
 
   /**
    * Default constructor is private (by design). Use Graph::create() instead.
@@ -199,7 +199,7 @@ class Graph {
     for (auto const& vertex: g.vertices_) {
       uint32_t num = vertex->count_edges_dir1() + vertex->count_edges_dir2();
       cnt += num;
-      fprintf(stderr, "Vertex edges, seq len: %d, %d\n", num, vertex->data()->size());
+      //fprintf(stderr, "Vertex edges, seq len: %d, %d\n", num, vertex->data()->size());
     }
     fprintf(stderr, "Edges: %d %d\n", g.edges_.size(), cnt);
     return g;

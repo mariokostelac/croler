@@ -75,6 +75,16 @@ class Vertex {
   void AddEdge(std::shared_ptr< Edge > edge, DIR dir);
 
   /**
+   * Returns edges of vertex with direction Label::Direction::FROM_ONE_TO_TWO
+   */
+  const std::vector<std::shared_ptr< Edge >>& getEdgesDir1() { return edges_dir1_ ;}
+
+  /**
+   * Returns edges of vertex with direction Label::Direction::FROM_TWO_TO_ONE
+   */
+  const std::vector<std::shared_ptr< Edge >>& getEdgesDir2() { return edges_dir2_ ;}
+
+  /**
    * Returns number of edges of vertex with direction Label::Direction::FROM_ONE_TO_TWO
    */
   const uint32_t count_edges_dir1() const { return edges_dir1_.size() ;}
@@ -98,6 +108,16 @@ class Vertex {
    * Mark correspondig edges for removal
    */
   void markEdges();
+
+  /**
+   * Erase given edge in direction one for removal 
+   */
+  void eraseEdgeDir1(std::shared_ptr< Edge > pair_edge);
+
+  /**
+   * Erase given edge in direction two for removal 
+   */
+  void eraseEdgeDir2(std::shared_ptr< Edge > pair_edge);
 };
 
 };  // namespace layout
