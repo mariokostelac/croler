@@ -78,7 +78,7 @@ class Unitigging {
   /**
    * Creates contigs from given read and overlap sets
    */
-  void makeContigs(overlap::ReadSet* c_reads, BetterOverlapSetPtr c_overlaps);
+  void makeContigs(BetterOverlapSetPtr c_overlaps);
 
  private:
   overlap::ReadSet* reads_;
@@ -95,7 +95,7 @@ class Unitigging {
       BetterOverlap* o2,
       BetterOverlap* o3) const;
   void removeTransitiveEdges();
-  // void makeContigs(overlap::ReadSet* c_reads, BetterOverlapSetPtr c_overlaps);
+  // void makeContigs();
 
   friend test::UnitiggingTest;
   friend test::UnitiggingIsTransitiveTest;

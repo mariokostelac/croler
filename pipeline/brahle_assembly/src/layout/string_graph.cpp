@@ -80,9 +80,9 @@ void Graph::trim() {
   uint32_t disconnected_ctr = 0;
   uint32_t tips_ctr = 0;
 
-  fprintf(stderr, "vertices: %d\n", vertices_.size());
-  fprintf(stderr, "map: %d\n", id_to_vertex_map_.size());
-  fprintf(stderr, "edges: %d\n", edges_.size());
+  // fprintf(stderr, "vertices: %d\n", vertices_.size());
+  // fprintf(stderr, "map: %d\n", id_to_vertex_map_.size());
+  // fprintf(stderr, "edges: %d\n", edges_.size());
   fprintf(stderr, "Trimmming threshold: %d\n", trimSeqLenThreshold);
 
 
@@ -141,9 +141,9 @@ void Graph::trim() {
     id_to_vertex_map_ = id_to_vertex_map_temp;
   }
 
-  fprintf(stderr, "vertices: %d\n", vertices_.size());
-  fprintf(stderr, "map: %d\n", id_to_vertex_map_.size());
-  fprintf(stderr, "edges: %d\n", edges_.size());
+  // fprintf(stderr, "vertices: %d\n", vertices_.size());
+  // fprintf(stderr, "map: %d\n", id_to_vertex_map_.size());
+  // fprintf(stderr, "edges: %d\n", edges_.size());
 
   fprintf(stderr, "Removed %d tips and %d disconnected vertices\n",
                    tips_ctr, disconnected_ctr);
@@ -162,10 +162,8 @@ Unitigging::BetterOverlapSetPtr Graph::extractOverlaps() {
   overlap_set_ = Unitigging::BetterOverlapSetPtr(
                     new BetterOverlapSet(read_set_));
   // add all overlaps from edges
-  int i = 1;
   for (auto &edge: edges_) {
     bool not_in_set = true;
-    // kvadratna slozenost, ne svida mi se ovo bas
     size_t  overlaps_size = overlap_set_->size();
     for (size_t i = 0; i < overlaps_size; ++i) {
       auto overlap = (*overlap_set_)[i];
