@@ -83,7 +83,7 @@ void Graph::trim() {
   fprintf(stderr, "vertices: %d\n", vertices_.size());
   fprintf(stderr, "map: %d\n", id_to_vertex_map_.size());
   fprintf(stderr, "edges: %d\n", edges_.size());
-  fprintf(stderr, "threshold: %d\n", trimSeqLenThreshold);
+  fprintf(stderr, "Trimmming threshold: %d\n", trimSeqLenThreshold);
 
 
   for (auto const& vertex: vertices_) {

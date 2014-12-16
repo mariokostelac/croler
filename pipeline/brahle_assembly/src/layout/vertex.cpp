@@ -1,6 +1,7 @@
 // Copyright 2014 Bruno Rahle
 
 #include <string>
+#include <vector>
 
 #include "layout/vertex.h"
 #include "layout/string_graph.h"
@@ -30,15 +31,65 @@ void Vertex::AddEdge(std::shared_ptr< Edge > edge, DIR dir) {
   }
 }
 
+void Vertex::eraseEdgeDir1(std::shared_ptr< Edge > pair_edge) {
+    size_t i = 0;
+    bool found = false;
+    std::vector<std::shared_ptr< Edge >> temp_edges;
+    for (i = 0; i < edges_dir1_.size(); ++i) {
+        if (edges_dir1_[i]->A()->id() == pair_edge->A()->id() &&
+            edges_dir1_[i]->B()->id() == pair_edge->B()->id()) {
+            found = true;
+            // fprintf(stderr, "\tFound\n");
+        } else {
+            temp_edges.push_back(edges_dir1_[i]);
+        }
+    }
+    edges_dir1_.clear();
+    edges_dir1_ = temp_edges;
+}
+
+void Vertex::eraseEdgeDir2(std::shared_ptr< Edge > pair_edge) {
+    size_t i = 0;
+    bool found = false;
+    std::vector<std::shared_ptr< Edge >> temp_edges;
+    for (i = 0; i < edges_dir2_.size(); ++i) {
+        if (edges_dir2_[i]->A()->id() == pair_edge->A()->id() &&
+            edges_dir2_[i]->B()->id() == pair_edge->B()->id()) {
+            found = true;
+            // fprintf(stderr, "\tFound\n");
+        } else {
+            temp_edges.push_back(edges_dir2_[i]);
+        }
+    }
+    edges_dir2_.clear();
+    edges_dir2_ = temp_edges;
+}
+
 void Vertex::markEdges() {
     if (edges_dir1_.size() == 0) {
       for (auto const& edge: edges_dir2_) {
         edge->mark();
+        // find and mark overlap pair edge
+        const auto &edges_dir1_B = edge->B()->getEdgesDir1();
+        for (auto const& pair_edge: edges_dir1_B) {
+            if (pair_edge->B()->id() == this->id()) {
+                pair_edge->mark();
+                pair_edge->A()->eraseEdgeDir1(pair_edge);
+            }
+        }
       }
       edges_dir2_.clear();
     } else {
       for (auto const&edge: edges_dir1_) {
         edge->mark();
+         // find and mark overlap pair edge
+        const auto &edges_dir2_B = edge->B()->getEdgesDir2();
+        for (auto const& pair_edge: edges_dir2_B) {
+            if (pair_edge->B()->id() == this->id()) {
+                pair_edge->mark();
+                pair_edge->A()->eraseEdgeDir2(pair_edge);
+            }
+        }
       }
       edges_dir1_.clear();
     }
