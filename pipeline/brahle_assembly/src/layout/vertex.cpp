@@ -36,8 +36,9 @@ void Vertex::eraseEdgeDir1(std::shared_ptr< Edge > pair_edge) {
     bool found = false;
     std::vector<std::shared_ptr< Edge >> temp_edges;
     for (i = 0; i < edges_dir1_.size(); ++i) {
-        if (edges_dir1_[i]->A()->id() == pair_edge->A()->id() &&
-            edges_dir1_[i]->B()->id() == pair_edge->B()->id()) {
+        // if (edges_dir1_[i]->A()->id() == pair_edge->A()->id() &&
+        //    edges_dir1_[i]->B()->id() == pair_edge->B()->id()) {
+        if (edges_dir1_[i]->label().overlap() == pair_edge->label().overlap()) {
             found = true;
             // fprintf(stderr, "\tFound\n");
         } else {
@@ -53,8 +54,9 @@ void Vertex::eraseEdgeDir2(std::shared_ptr< Edge > pair_edge) {
     bool found = false;
     std::vector<std::shared_ptr< Edge >> temp_edges;
     for (i = 0; i < edges_dir2_.size(); ++i) {
-        if (edges_dir2_[i]->A()->id() == pair_edge->A()->id() &&
-            edges_dir2_[i]->B()->id() == pair_edge->B()->id()) {
+        // if (edges_dir2_[i]->A()->id() == pair_edge->A()->id() &&
+        //    edges_dir2_[i]->B()->id() == pair_edge->B()->id()) {
+        if (edges_dir2_[i]->label().overlap() == pair_edge->label().overlap()) {
             found = true;
             // fprintf(stderr, "\tFound\n");
         } else {
@@ -72,7 +74,8 @@ void Vertex::markEdges() {
         // find and mark overlap pair edge
         const auto &edges_dir1_B = edge->B()->getEdgesDir1();
         for (auto const& pair_edge: edges_dir1_B) {
-            if (pair_edge->B()->id() == this->id()) {
+            if (pair_edge->label().overlap() == edge->label().overlap()) {
+            //if (pair_edge->B()->id() == this->id()) {
                 pair_edge->mark();
                 pair_edge->A()->eraseEdgeDir1(pair_edge);
             }
@@ -85,7 +88,8 @@ void Vertex::markEdges() {
          // find and mark overlap pair edge
         const auto &edges_dir2_B = edge->B()->getEdgesDir2();
         for (auto const& pair_edge: edges_dir2_B) {
-            if (pair_edge->B()->id() == this->id()) {
+            if (pair_edge->label().overlap() == edge->label().overlap()) {
+            // if (pair_edge->B()->id() == this->id()) {
                 pair_edge->mark();
                 pair_edge->A()->eraseEdgeDir2(pair_edge);
             }

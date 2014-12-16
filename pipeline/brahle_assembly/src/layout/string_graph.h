@@ -107,6 +107,7 @@ class Edge {
  * String Graph. Use Graph::create() to create the graph.
  */
 class Graph {
+
   /**
    * Comparator for two edges.
    *
@@ -133,6 +134,10 @@ class Graph {
   std::map< uint32_t, uint32_t > id_to_vertex_map_;
   bool finalized_;
   static const uint32_t trimSeqLenThreshold = 600;
+
+  overlap::ReadSet* read_set_;
+  typedef std::shared_ptr< BetterOverlapSet > BetterOverlapSetPtr;
+  Unitigging::BetterOverlapSetPtr overlap_set_;
 
   /**
    * Default constructor is private (by design). Use Graph::create() instead.
@@ -214,6 +219,16 @@ class Graph {
    * Removes tips and disconnected vertices from graph.
    */
   void trim();
+
+  /**
+   * Method extracts read set from graph
+   */
+  overlap::ReadSet* extractReads();
+
+  /**
+   * Method extracts overlap set from graph
+   */
+  Unitigging::BetterOverlapSetPtr extractOverlaps();
 };
 
 };  // namespace layout

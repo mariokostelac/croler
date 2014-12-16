@@ -107,39 +107,39 @@ void Graph::trim() {
     }
   }
 
-  if (disconnected_ctr == 0 && tips_ctr == 0) return;
+  if (!(disconnected_ctr == 0 && tips_ctr == 0)) {
+    std::vector< std::shared_ptr< Vertex > > vertices_temp;
+    std::vector< std::shared_ptr< Edge > > edges_temp;
+    std::map< uint32_t, uint32_t > id_to_vertex_map_temp;
 
-  std::vector< std::shared_ptr< Vertex > > vertices_temp;
-  std::vector< std::shared_ptr< Edge > > edges_temp;
-  std::map< uint32_t, uint32_t > id_to_vertex_map_temp;
-
-  // delete vertices from graph
-  size_t num_vertices = vertices_.size();
-  for (size_t i = 0, j = 0; i < num_vertices; ++i) {
-    if (vertices_[i]->isMarked()) {
-      vertices_[i].reset();
-    } else {
-      vertices_temp.emplace_back(vertices_[i]);
-      id_to_vertex_map_temp[vertices_[i]->id()] = j++;
+    // delete vertices from graph
+    size_t num_vertices = vertices_.size();
+    for (size_t i = 0, j = 0; i < num_vertices; ++i) {
+      if (vertices_[i]->isMarked()) {
+        vertices_[i].reset();
+      } else {
+        vertices_temp.emplace_back(vertices_[i]);
+        id_to_vertex_map_temp[vertices_[i]->id()] = j++;
+      }
     }
-  }
 
-  // delete edges from graph
-  size_t num_edges = edges_.size();
-  for (size_t i = 0; i < num_edges; ++i) {
-    if (edges_[i]->isMarked()) {
-      edges_[i].reset();
-    } else {
-      edges_temp.emplace_back(edges_[i]);
+    // delete edges from graph
+    size_t num_edges = edges_.size();
+    for (size_t i = 0; i < num_edges; ++i) {
+      if (edges_[i]->isMarked()) {
+        edges_[i].reset();
+      } else {
+        edges_temp.emplace_back(edges_[i]);
+      }
     }
-  }
 
-  vertices_.clear();
-  vertices_ = vertices_temp;
-  edges_.clear();
-  edges_ = edges_temp;
-  id_to_vertex_map_.clear();
-  id_to_vertex_map_ = id_to_vertex_map_temp;
+    vertices_.clear();
+    vertices_ = vertices_temp;
+    edges_.clear();
+    edges_ = edges_temp;
+    id_to_vertex_map_.clear();
+    id_to_vertex_map_ = id_to_vertex_map_temp;
+  }
 
   fprintf(stderr, "vertices: %d\n", vertices_.size());
   fprintf(stderr, "map: %d\n", id_to_vertex_map_.size());
@@ -147,6 +147,39 @@ void Graph::trim() {
 
   fprintf(stderr, "Removed %d tips and %d disconnected vertices\n",
                    tips_ctr, disconnected_ctr);
+}
+
+overlap::ReadSet* Graph::extractReads() {
+  read_set_ = new overlap::ReadSet(vertices_.size());
+  for (auto const& vertex: vertices_) {
+    read_set_->Add((overlap::Read *)vertex->data());
+  }
+  return read_set_;
+}
+
+Unitigging::BetterOverlapSetPtr Graph::extractOverlaps() {
+  assert(read_set_ != nullptr);
+  overlap_set_ = Unitigging::BetterOverlapSetPtr(
+                    new BetterOverlapSet(read_set_));
+  // add all overlaps from edges
+  int i = 1;
+  for (auto &edge: edges_) {
+    bool not_in_set = true;
+    // kvadratna slozenost, ne svida mi se ovo bas
+    size_t  overlaps_size = overlap_set_->size();
+    for (size_t i = 0; i < overlaps_size; ++i) {
+      auto overlap = (*overlap_set_)[i];
+      if (overlap->one()->id() == edge->label().overlap()->one()->id() &&
+          overlap->two()->id() == edge->label().overlap()->two()->id()) {
+        not_in_set = false;
+        break;
+      }
+    }
+    if (not_in_set) {
+      overlap_set_->Add(new BetterOverlap(edge->label().overlap()));
+    }
+  }
+  return overlap_set_;
 }
 
 };  // namespace layout
