@@ -32,7 +32,7 @@ Unitigging::~Unitigging() {
 void Unitigging::start() {
   removeContainmentEdges();
   removeTransitiveEdges();
-  makeContigs();
+  makeContigs(reads_, no_transitives_);
 }
 
 Unitigging::ContigSetPtr& Unitigging::contigs() {
@@ -179,9 +179,9 @@ inline void Unitigging::removeTransitiveEdges() {
       (transitive_edge_count * 100.0) / no_contains_->size());
 }
 
-void Unitigging::makeContigs() {
-  uint32_t** degrees = new uint32_t*[reads_->size()];
-  for (size_t i = 0; i < reads_->size(); ++i) {
+void Unitigging::makeContigs(overlap::ReadSet* c_reads, BetterOverlapSetPtr c_overlaps) {
+  uint32_t** degrees = new uint32_t*[c_reads->size()];
+  for (size_t i = 0; i < c_reads->size(); ++i) {
     degrees[i] = new uint32_t[2]();
   }
   auto add_degree =
@@ -191,18 +191,18 @@ void Unitigging::makeContigs() {
     uint32_t suf = better_overlap->Suf(read);
     degrees[read][suf] += 1;
   };
-  for (size_t i = 0; i < no_transitives_->size(); ++i) {
-    auto better_overlap = (*no_transitives_)[i];
+  for (size_t i = 0; i < c_overlaps->size(); ++i) {
+    auto better_overlap = (*c_overlaps)[i];
     auto overlap = better_overlap->overlap();
     add_degree(degrees, overlap->read_one, better_overlap);
     add_degree(degrees, overlap->read_two, better_overlap);
   }
 
-  UnionFind uf(reads_->size());
-  BetterReadSet brs(reads_, 1);
+  UnionFind uf(c_reads->size());
+  BetterReadSet brs(c_reads, 1);
   // @mculinovic adding overlaps
-  for (size_t i = 0; i < no_transitives_->size(); ++i) {
-    auto better_overlap = (*no_transitives_)[i];
+  for (size_t i = 0; i < c_overlaps->size(); ++i) {
+    auto better_overlap = (*c_overlaps)[i];
     auto overlap = better_overlap->overlap();
     brs[overlap->read_one]->AddOverlap(better_overlap);
     brs[overlap->read_two]->AddOverlap(better_overlap);
@@ -213,8 +213,8 @@ void Unitigging::makeContigs() {
   // create contigs from reads
   contigs_ = ContigSetPtr(new ContigSet(&brs));
 
-  for (size_t i = 0; i < no_transitives_->size(); ++i) {
-    auto better_overlap = (*no_transitives_)[i];
+  for (size_t i = 0; i < c_overlaps->size(); ++i) {
+    auto better_overlap = (*c_overlaps)[i];
     auto overlap = better_overlap->overlap();
     auto read_one = overlap->read_one;
     auto read_two = overlap->read_two;
@@ -232,7 +232,7 @@ void Unitigging::makeContigs() {
     }
   }
 
-  for (size_t i = 0; i < reads_->size(); ++i) {
+  for (size_t i = 0; i < c_reads->size(); ++i) {
     delete [] degrees[i];
   }
   delete [] degrees;
