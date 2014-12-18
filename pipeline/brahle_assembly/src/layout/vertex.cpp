@@ -75,7 +75,7 @@ void Vertex::markEdges() {
         const auto &edges_dir1_B = edge->B()->getEdgesDir1();
         for (auto const& pair_edge: edges_dir1_B) {
             if (pair_edge->label().overlap() == edge->label().overlap()) {
-            //if (pair_edge->B()->id() == this->id()) {
+            // if (pair_edge->B()->id() == this->id()) {
                 pair_edge->mark();
                 pair_edge->A()->eraseEdgeDir1(pair_edge);
             }
@@ -97,6 +97,13 @@ void Vertex::markEdges() {
       }
       edges_dir1_.clear();
     }
+}
+
+const std::vector<std::shared_ptr< Edge >>& Vertex::getEdges(Label::Direction dir) {
+    if (dir == Label::Direction::FROM_ONE_TO_TWO)
+        return edges_dir1_;
+    else
+        return edges_dir2_;
 }
 
 };  // namespace layout

@@ -8,6 +8,7 @@
 #include <layout/label.h>
 #include <layout/unitigging.h>
 #include <layout/vertex.h>
+#include <layout/bubble_walk.h>
 
 #include <map>
 #include <memory>
@@ -134,6 +135,10 @@ class Graph {
   std::map< uint32_t, uint32_t > id_to_vertex_map_;
   bool finalized_;
   static const uint32_t trimSeqLenThreshold = 600;
+  // maximum number of reads in bubble
+  static const uint32_t MAX_READS = 20;
+  // maximum distance from starting vertex in bubble
+  static const uint64_t MAX_DISTANCE = 1000;
 
   overlap::ReadSet* read_set_;
   typedef std::shared_ptr< BetterOverlapSet > BetterOverlapSetPtr;
@@ -217,18 +222,43 @@ class Graph {
 
   /**
    * Removes tips and disconnected vertices from graph.
+   * @mculinovic
    */
   void trim();
 
   /**
    * Method extracts read set from graph
+   * @mculinovic
    */
   overlap::ReadSet* extractReads();
 
   /**
    * Method extracts overlap set from graph
+   * @mculinovic
    */
   Unitigging::BetterOverlapSetPtr extractOverlaps();
+
+  /**
+   * Removes bubbles from graph
+   * @mculinovic
+   */
+  void removeBubbles();
+
+
+ private:
+  /**
+   * Finds walks in graph starting from vertex which
+   * create a bubble
+   * @mculinovic
+   */
+  void getBubbleWalks(const std::shared_ptr<Vertex>& vertex,
+                        Label::Direction dir,
+                        std::vector<BubbleWalk> &bubble_walks);
+
+  /**
+   * Checks if bubble is found during bfs
+   */
+  bool bubbleFound();
 };
 
 };  // namespace layout

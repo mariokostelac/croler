@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <deque>
 
 #include "layout/string_graph.h"
 
@@ -179,5 +180,79 @@ Unitigging::BetterOverlapSetPtr Graph::extractOverlaps() {
   }
   return overlap_set_;
 }
+
+void Graph::removeBubbles() {
+  for (auto const& vertex: vertices_) {
+    // skip vertices already marked for removal
+    if (vertex->isMarked()) continue;
+
+    // check edges in both directions
+    // Label::Direction::FROM_ONE_TO_TWO and Label::Direction::FROM_TWO_TO_ONE
+    for (size_t i = 0; i < 2; ++i) {
+      const std::vector<std::shared_ptr< Edge >> &edges = (i == 0) ?
+                    vertex->getEdgesDir1() : vertex->getEdgesDir2();
+      if (edges.size() <= 1) continue;
+
+      // check for every edge if vertex B is marked
+      bool skip = false;
+      for (auto const& edge: edges) {
+        if (edge->B()->isMarked()) {
+          skip = true;
+          break;
+        }
+      }
+      if (skip) continue;
+
+      std::vector<BubbleWalk> bubble_walks;
+      Label::Direction dir = (i == 0) ?
+          Label::Direction::FROM_ONE_TO_TWO : Label::Direction::FROM_TWO_TO_ONE;
+      getBubbleWalks(vertex, dir, bubble_walks);
+    }
+  }
+}
+
+void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& root,
+                            Label::Direction dir,
+                            std::vector<BubbleWalk> &bubble_walks) {
+  // breadth-first search graph
+  std::deque<std::shared_ptr< Vertex >> opened_queue;
+  std::deque<std::shared_ptr< Vertex >> closed_queue;
+  uint32_t reads_cnt = 0;
+  uint64_t distance = 0;
+
+  opened_queue.emplace_back(root);
+  ++reads_cnt;
+  while (!opened_queue.empty()) {
+    if (reads_cnt > MAX_READS) {
+      closed_queue.insert(closed_queue.end(),
+                          opened_queue.begin(),
+                          opened_queue.end());
+      break;
+    }
+    std::deque<std::shared_ptr< Vertex >> expand_queue;
+    while (!opened_queue.empty()) {
+      std::shared_ptr<Vertex> vertex = opened_queue.front();
+      opened_queue.pop_front();
+      if (distance > MAX_DISTANCE) {
+        closed_queue.emplace_back(vertex);
+      } else {
+        // expand current vertex
+        const std::vector<std::shared_ptr < Edge >> &edges = vertex->getEdges(dir);
+        uint32_t expansion_reads_cnt = edges.size();
+        reads_cnt += expansion_reads_cnt;
+        if (expansion_reads_cnt == 0)
+          closed_queue.emplace_back(vertex);
+      }
+    }
+    opened_queue = expand_queue;
+    if (bubbleFound()) {
+      // add bubble walks to vector
+      return;
+    }
+  }
+  bubble_walks.clear();
+}
+
+bool Graph::bubbleFound() {}
 
 };  // namespace layout

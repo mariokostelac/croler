@@ -75,6 +75,11 @@ class Vertex {
   void AddEdge(std::shared_ptr< Edge > edge, DIR dir);
 
   /**
+   * Return edges with given direction
+   */
+  const std::vector<std::shared_ptr< Edge >>& getEdges(Label::Direction dir);
+
+  /**
    * Returns edges of vertex with direction Label::Direction::FROM_ONE_TO_TWO
    */
   const std::vector<std::shared_ptr< Edge >>& getEdgesDir1() { return edges_dir1_ ;}
