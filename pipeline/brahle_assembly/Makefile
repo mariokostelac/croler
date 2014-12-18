@@ -11,7 +11,7 @@ VPATH=src:src/layout:src/overlap:src/test:bin
 # they are changed.
 HPP=util.h
 
-OBJ=fm_index.o overlap.o better_overlap.o better_read.o read.o sort.o suffix_array.o suffix_filter.o unitigging.o util.o union_find.o contig.o layout_utils.o vertex.o string_graph.o label.o
+OBJ=fm_index.o overlap.o better_overlap.o better_read.o read.o sort.o suffix_array.o suffix_filter.o unitigging.o util.o union_find.o contig.o layout_utils.o vertex.o string_graph.o label.o bubble_walk.o
 OBJ_SPECIAL=sais.o
 ALL_OBJ=$(OBJ) $(OBJ_SPECIAL)
 
