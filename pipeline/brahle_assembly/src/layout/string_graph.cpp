@@ -215,8 +215,6 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& root,
                             Label::Direction dir,
                             std::vector<BubbleWalk> &bubble_walks) {
   // breadth-first search graph
-  std::deque<std::shared_ptr< Vertex >> opened_queue;
-  std::deque<std::shared_ptr< Vertex >> closed_queue;
   uint32_t reads_cnt = 0;
   uint64_t distance = 0;
 
@@ -245,14 +243,45 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& root,
       }
     }
     opened_queue = expand_queue;
-    if (bubbleFound()) {
+    std::shared_ptr<Vertex> end_vertex;
+    if (bubbleFound(root, &end_vertex)) {
       // add bubble walks to vector
       return;
     }
   }
+  opened_queue.clear();
+  closed_queue.clear();
   bubble_walks.clear();
 }
 
-bool Graph::bubbleFound() {}
+bool Graph::bubbleFound(std::shared_ptr<Vertex> root, std::shared_ptr<Vertex>* end) {
+  std::deque<std::shared_ptr< Vertex >> vertices;
+  vertices.insert(vertices.end(), opened_queue.begin(), opened_queue.end());
+  vertices.insert(vertices.end(), closed_queue.begin(), closed_queue.end());
+
+  for (auto const& end_vertex: opened_queue) {
+    if (end_vertex->id() == root->id())
+      continue;
+
+    bool isBubbleEnd = true;
+    for (auto const& vertex: vertices) {
+      if (!isEndVertex(end_vertex, vertex, root)) {
+        isBubbleEnd = false;
+        break;
+      }
+    }
+    if (isBubbleEnd) {
+      *end = end_vertex;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool Graph::isEndVertex(std::shared_ptr<Vertex> end,
+                        std::shared_ptr<Vertex> vertex,
+                        std::shared_ptr<Vertex> root) {
+  return false;
+}
 
 };  // namespace layout

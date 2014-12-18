@@ -135,6 +135,9 @@ class Graph {
   std::map< uint32_t, uint32_t > id_to_vertex_map_;
   bool finalized_;
   static const uint32_t trimSeqLenThreshold = 600;
+  // queues for bubble popping
+  std::deque<std::shared_ptr< Vertex >> opened_queue;
+  std::deque<std::shared_ptr< Vertex >> closed_queue;
   // maximum number of reads in bubble
   static const uint32_t MAX_READS = 20;
   // maximum distance from starting vertex in bubble
@@ -257,8 +260,16 @@ class Graph {
 
   /**
    * Checks if bubble is found during bfs
+   * @mculinovic
    */
-  bool bubbleFound();
+  bool bubbleFound(std::shared_ptr<Vertex> root, std::shared_ptr<Vertex>* end);
+
+  /**
+   * Checks if bubble ends with vertex "end"
+   * @mculinovic
+   */
+  bool isEndVertex(std::shared_ptr<Vertex> end, std::shared_ptr<Vertex> vertex,
+                    std::shared_ptr<Vertex> root);
 };
 
 };  // namespace layout
