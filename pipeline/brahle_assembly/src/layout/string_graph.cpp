@@ -94,14 +94,14 @@ void Graph::trim() {
       continue;
 
     // check if disconnected
-    if (vertex->count_edges_dir1() == 0 && vertex->count_edges_dir2() == 0) {
+    if (vertex->count_edges_B() == 0 && vertex->count_edges_E() == 0) {
       vertex->mark();
       ++disconnected_ctr;
       continue;
     }
 
     // check if tip
-    if (vertex->count_edges_dir1() == 0 || vertex->count_edges_dir2() == 0) {
+    if (vertex->count_edges_B() == 0 || vertex->count_edges_E() == 0) {
       vertex->mark();
       vertex->markEdges();
       ++tips_ctr;

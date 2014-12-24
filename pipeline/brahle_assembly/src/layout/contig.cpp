@@ -72,6 +72,12 @@ const deque< BetterRead* >& Contig::getReads() {
 ContigSet::ContigSet(BetterReadSet* read_set) : contigs_(read_set->size()) {
   for (size_t i = 0; i < read_set->size(); ++i) {
     contigs_[i] = new Contig((*read_set)[i], read_set);
+    // make contigs of only usable reads
+    if (!((*read_set)[i]->read()->isUsable())) {
+      contigs_[i]->Kill();
+    } else {
+      // puts("usable");
+    }
   }
 }
 

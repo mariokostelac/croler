@@ -38,9 +38,14 @@ class Label {
   std::string get() const;
 
   /**
-   *
+   * Getter for better overlap
    */
   BetterOverlapPtr overlap() const { return overlap_ ;}
+
+  /**
+   * Getter for direction
+   */
+  const Direction direction() const { return direction_ ;}
 
  private:
   BetterOverlapPtr overlap_;

@@ -28,6 +28,11 @@ class Vertex {
   const Graph& graph_;
   bool marked_;
 
+  // overlaps where read is prefix
+  std::vector <std::shared_ptr< Edge > > edges_B_;
+  // overlaps where read is suffix
+  std::vector <std::shared_ptr< Edge > > edges_E_;
+
   // edges with label direction FROM_ONE_TO_TWO
   std::vector <std::shared_ptr< Edge > > edges_dir1_;
   // edges with label direction FROM_TWO_TO_ONE
@@ -70,6 +75,12 @@ class Vertex {
   virtual const std::string getName() const;
 
   /**
+   * Adds edge to vertex vector in accordance with read
+   * being prefix or suffix of overlap
+   */
+  void AddEdge(std::shared_ptr< Edge > edge);
+
+  /**
     * Adds edge to edge vector in given direction
     */
   void AddEdge(std::shared_ptr< Edge > edge, DIR dir);
@@ -82,12 +93,12 @@ class Vertex {
   /**
    * Returns edges of vertex with direction Label::Direction::FROM_ONE_TO_TWO
    */
-  const std::vector<std::shared_ptr< Edge >>& getEdgesDir1() { return edges_dir1_ ;}
+  std::vector<std::shared_ptr< Edge >>& getEdgesDir1() { return edges_dir1_ ;}
 
   /**
    * Returns edges of vertex with direction Label::Direction::FROM_TWO_TO_ONE
    */
-  const std::vector<std::shared_ptr< Edge >>& getEdgesDir2() { return edges_dir2_ ;}
+  std::vector<std::shared_ptr< Edge >>& getEdgesDir2() { return edges_dir2_ ;}
 
   /**
    * Returns number of edges of vertex with direction Label::Direction::FROM_ONE_TO_TWO
@@ -98,6 +109,26 @@ class Vertex {
    * Returns number of edges of vertex with direction Label::Direction::FROM_TWO_TO_ONE
    */
   const uint32_t count_edges_dir2() const { return edges_dir2_.size() ;}
+
+    /**
+   * Returns edges of vertex where read of overlap is prefix
+   */
+  std::vector<std::shared_ptr< Edge >>& getEdgesB() { return edges_B_ ;}
+
+  /**
+   * Returns edges of vertex where read of overlap is suffix
+   */
+  std::vector<std::shared_ptr< Edge >>& getEdgesE() { return edges_E_ ;}
+
+  /**
+   * Number of overlaps where read is prefix
+   */
+  const uint32_t count_edges_B() const { return edges_B_.size() ;}
+
+  /**
+   * Number of overlaps where read is suffix
+   */
+  const uint32_t count_edges_E() const { return edges_E_.size() ;}
 
   /**
    * Mark vertex for removal
@@ -123,6 +154,16 @@ class Vertex {
    * Erase given edge in direction two for removal 
    */
   void eraseEdgeDir2(std::shared_ptr< Edge > pair_edge);
+
+  /**
+   * Erase given edge in edges_B
+   */
+  void eraseEdgeB(std::shared_ptr< Edge > pair_edge);
+
+  /**
+   * Erase given edge in edges_E 
+   */
+  void eraseEdgeE(std::shared_ptr< Edge > pair_edge);
 };
 
 };  // namespace layout

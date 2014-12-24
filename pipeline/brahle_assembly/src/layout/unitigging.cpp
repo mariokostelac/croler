@@ -32,7 +32,7 @@ Unitigging::~Unitigging() {
 void Unitigging::start() {
   removeContainmentEdges();
   removeTransitiveEdges();
-  makeContigs(no_transitives_);
+  makeContigs(no_transitives_, reads_);
 }
 
 Unitigging::ContigSetPtr& Unitigging::contigs() {
@@ -179,8 +179,8 @@ inline void Unitigging::removeTransitiveEdges() {
       (transitive_edge_count * 100.0) / no_contains_->size());
 }
 
-void Unitigging::makeContigs(BetterOverlapSetPtr c_overlaps) {
-  fprintf(stderr, "Reads: %d, Overlaps: %d\n", reads_->size(), c_overlaps->size());
+void Unitigging::makeContigs(BetterOverlapSetPtr c_overlaps, overlap::ReadSet* read_set) {
+  fprintf(stderr, "Reads: %d, Overlaps: %d\n", read_set->size(), c_overlaps->size());
   uint32_t** degrees = new uint32_t*[reads_->size()];
   for (size_t i = 0; i < reads_->size(); ++i) {
     degrees[i] = new uint32_t[2]();
@@ -200,6 +200,15 @@ void Unitigging::makeContigs(BetterOverlapSetPtr c_overlaps) {
   }
 
   UnionFind uf(reads_->size());
+  // first mark all reads as unusable
+  for (size_t i = 0; i < reads_->size(); ++i) {
+    (*reads_)[i]->usable(false);
+  }
+  // mark reads as usable
+  for (size_t i = 0; i < read_set->size(); ++i) {
+    size_t id = (*read_set)[i]->id();
+    (*reads_)[id]->usable(true);
+  }
   BetterReadSet brs(reads_, 1);
   // @mculinovic adding overlaps
   for (size_t i = 0; i < c_overlaps->size(); ++i) {

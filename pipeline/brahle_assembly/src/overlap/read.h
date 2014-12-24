@@ -35,10 +35,13 @@ public:
 
   uint32_t id() const;
   uint32_t orig_id() const;
+  void usable(bool value) { usable_ = value; }
+  bool isUsable() {return usable_; }
 
 private:
   const uint32_t id_;
   const uint32_t orig_id_;
+  bool usable_;
 };
 
 const uint8_t* ReverseComplement(const uint8_t* data, size_t size);

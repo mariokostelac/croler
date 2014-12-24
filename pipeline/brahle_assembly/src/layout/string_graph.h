@@ -191,6 +191,7 @@ class Graph {
                   g));
 
       g.edges_.push_back(edge_one);
+      g.getVertex(overlap->overlap()->read_one)->AddEdge(edge_one);
       g.getVertex(overlap->overlap()->read_one)->AddEdge(
                                       edge_one,
                                       Label::Direction::FROM_ONE_TO_TWO);
@@ -202,6 +203,7 @@ class Graph {
                   g));
 
       g.edges_.push_back(edge_two);
+      g.getVertex(overlap->overlap()->read_two)->AddEdge(edge_two);
       g.getVertex(overlap->overlap()->read_two)->AddEdge(
                                       edge_two,
                                       Label::Direction::FROM_TWO_TO_ONE);
@@ -214,7 +216,7 @@ class Graph {
       cnt += num;
       //fprintf(stderr, "Vertex edges, seq len: %d, %d\n", num, vertex->data()->size());
     }
-    fprintf(stderr, "Edges: %d %d\n", g.edges_.size(), cnt);
+    // fprintf(stderr, "Edges: %d %d\n", g.edges_.size(), cnt);
     return g;
   }
 

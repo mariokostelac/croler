@@ -54,13 +54,18 @@ class Contig {
    */
   const std::deque< BetterReadPtr >& getReads();
 
+  /**
+   * Mark contig as non valid
+   */
+  void Kill();
+
  private:
   std::deque< BetterReadPtr > reads_;
   BetterReadSetPtr read_set_;
   bool valid_;
   bool alive_;
   bool IsLeftOverlap(BetterOverlapPtr better_overlap) const;
-  void Kill();
+  // void Kill();
 };
 
 
