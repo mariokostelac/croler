@@ -86,9 +86,9 @@ class Vertex {
   void AddEdge(std::shared_ptr< Edge > edge, DIR dir);
 
   /**
-   * Return edges with given direction
+   * Return edges with given direction - read is prefix or suffix in overlap
    */
-  const std::vector<std::shared_ptr< Edge >>& getEdges(Label::Direction dir);
+  const std::vector<std::shared_ptr< Edge >>& getEdges(uint32_t dir);
 
   /**
    * Returns edges of vertex with direction Label::Direction::FROM_ONE_TO_TWO

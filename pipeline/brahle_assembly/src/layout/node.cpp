@@ -2,6 +2,7 @@
 
 
 #include <layout/node.h>
+#include <layout/string_graph.h>
 
 #include <deque>
 #include <vector>

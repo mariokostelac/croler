@@ -9,6 +9,7 @@
 #include <layout/unitigging.h>
 #include <layout/vertex.h>
 #include <layout/bubble_walk.h>
+#include <layout/node.h>
 
 #include <map>
 #include <memory>
@@ -136,8 +137,8 @@ class Graph {
   bool finalized_;
   static const uint32_t trimSeqLenThreshold = 600;
   // queues for bubble popping
-  std::deque<std::shared_ptr< Vertex >> opened_queue;
-  std::deque<std::shared_ptr< Vertex >> closed_queue;
+  std::deque< Node* > opened_queue;
+  std::deque< Node* > closed_queue;
   // maximum number of reads in bubble
   static const uint32_t MAX_READS = 20;
   // maximum distance from starting vertex in bubble
@@ -257,21 +258,20 @@ class Graph {
    * @mculinovic
    */
   void getBubbleWalks(const std::shared_ptr<Vertex>& vertex,
-                        Label::Direction dir,
+                        size_t dir,
                         std::vector<BubbleWalk> &bubble_walks);
 
   /**
    * Checks if bubble is found during bfs
    * @mculinovic
    */
-  bool bubbleFound(std::shared_ptr<Vertex> root, std::shared_ptr<Vertex>* end);
+  bool bubbleFound(Node *root, std::shared_ptr<Vertex>* end);
 
   /**
    * Checks if bubble ends with vertex "end"
    * @mculinovic
    */
-  bool isEndVertex(std::shared_ptr<Vertex> end, std::shared_ptr<Vertex> vertex,
-                    std::shared_ptr<Vertex> root);
+  bool isEndVertex(std::shared_ptr<Vertex> end, Node *node, Node* root);
 };
 
 };  // namespace layout

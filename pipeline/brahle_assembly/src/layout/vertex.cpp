@@ -167,11 +167,11 @@ void Vertex::markEdges() {
     }
 }
 
-const std::vector<std::shared_ptr< Edge >>& Vertex::getEdges(Label::Direction dir) {
-    if (dir == Label::Direction::FROM_ONE_TO_TWO)
-        return edges_dir1_;
+const std::vector<std::shared_ptr< Edge >>& Vertex::getEdges(uint32_t dir) {
+    if (dir == 0)
+        return edges_B_;
     else
-        return edges_dir2_;
+        return edges_E_;
 }
 
 };  // namespace layout

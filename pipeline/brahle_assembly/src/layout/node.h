@@ -4,12 +4,13 @@
 #define LAYOUT_NODE_H
 
 #include <layout/vertex.h>
-#include <layout/string_graph.h>
 
 #include <deque>
 #include <memory>
 
 namespace layout {
+
+class Edge;
 
 // BFS Wrapper for Vertex
 class Node {
@@ -18,6 +19,8 @@ class Node {
          std::shared_ptr<Edge> edge_from_parent, uint32_t distance);
     ~Node();
     uint32_t expand(std::deque<Node*>& expand_queue);
+
+    const std::shared_ptr< Vertex >& vertex() const { return vertex_; }
 
   private:
     std::shared_ptr<Vertex> vertex_;

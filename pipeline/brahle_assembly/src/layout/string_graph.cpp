@@ -186,11 +186,10 @@ void Graph::removeBubbles() {
     // skip vertices already marked for removal
     if (vertex->isMarked()) continue;
 
-    // check edges in both directions
-    // Label::Direction::FROM_ONE_TO_TWO and Label::Direction::FROM_TWO_TO_ONE
-    for (size_t i = 0; i < 2; ++i) {
-      const std::vector<std::shared_ptr< Edge >> &edges = (i == 0) ?
-                    vertex->getEdgesDir1() : vertex->getEdgesDir2();
+    // check overlaps where read is prefix (dir = 0) or suffix (dir = 1)
+    for (size_t dir = 0; dir < 2; ++dir) {
+      const std::vector<std::shared_ptr< Edge >> &edges = (dir == 0) ?
+                    vertex->getEdgesB() : vertex->getEdgesE();
       if (edges.size() <= 1) continue;
 
       // check for every edge if vertex B is marked
@@ -204,19 +203,19 @@ void Graph::removeBubbles() {
       if (skip) continue;
 
       std::vector<BubbleWalk> bubble_walks;
-      Label::Direction dir = (i == 0) ?
-          Label::Direction::FROM_ONE_TO_TWO : Label::Direction::FROM_TWO_TO_ONE;
       getBubbleWalks(vertex, dir, bubble_walks);
     }
   }
 }
 
-void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& root,
-                            Label::Direction dir,
+void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
+                            size_t dir,
                             std::vector<BubbleWalk> &bubble_walks) {
   // breadth-first search graph
   uint32_t reads_cnt = 0;
   uint64_t distance = 0;
+
+  Node *root = new Node(vertex_root, dir, nullptr, nullptr, 0);
 
   opened_queue.emplace_back(root);
   ++reads_cnt;
@@ -225,21 +224,21 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& root,
       closed_queue.insert(closed_queue.end(),
                           opened_queue.begin(),
                           opened_queue.end());
+      opened_queue.clear();
       break;
     }
-    std::deque<std::shared_ptr< Vertex >> expand_queue;
+    std::deque< Node* > expand_queue;
     while (!opened_queue.empty()) {
-      std::shared_ptr<Vertex> vertex = opened_queue.front();
+      Node *node = opened_queue.front();
       opened_queue.pop_front();
       if (distance > MAX_DISTANCE) {
-        closed_queue.emplace_back(vertex);
+        closed_queue.emplace_back(node);
       } else {
         // expand current vertex
-        const std::vector<std::shared_ptr < Edge >> &edges = vertex->getEdges(dir);
-        uint32_t expansion_reads_cnt = edges.size();
+        uint32_t expansion_reads_cnt = node->expand(expand_queue);
         reads_cnt += expansion_reads_cnt;
         if (expansion_reads_cnt == 0)
-          closed_queue.emplace_back(vertex);
+          closed_queue.emplace_back(node);
       }
     }
     opened_queue = expand_queue;
@@ -254,24 +253,24 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& root,
   bubble_walks.clear();
 }
 
-bool Graph::bubbleFound(std::shared_ptr<Vertex> root, std::shared_ptr<Vertex>* end) {
-  std::deque<std::shared_ptr< Vertex >> vertices;
-  vertices.insert(vertices.end(), opened_queue.begin(), opened_queue.end());
-  vertices.insert(vertices.end(), closed_queue.begin(), closed_queue.end());
+bool Graph::bubbleFound(Node* root, std::shared_ptr<Vertex>* end) {
+  std::deque< Node* > nodes;
+  nodes.insert(nodes.end(), opened_queue.begin(), opened_queue.end());
+  nodes.insert(nodes.end(), closed_queue.begin(), closed_queue.end());
 
-  for (auto const& end_vertex: opened_queue) {
-    if (end_vertex->id() == root->id())
+  for (auto const& end_node: opened_queue) {
+    if (end_node->vertex()->id() == root->vertex()->id())
       continue;
 
     bool isBubbleEnd = true;
-    for (auto const& vertex: vertices) {
-      if (!isEndVertex(end_vertex, vertex, root)) {
+    for (auto const& node: nodes) {
+      if (!isEndVertex(end_node->vertex(), node, root)) {
         isBubbleEnd = false;
         break;
       }
     }
     if (isBubbleEnd) {
-      *end = end_vertex;
+      *end = end_node->vertex();
       return true;
     }
   }
@@ -279,8 +278,8 @@ bool Graph::bubbleFound(std::shared_ptr<Vertex> root, std::shared_ptr<Vertex>* e
 }
 
 bool Graph::isEndVertex(std::shared_ptr<Vertex> end,
-                        std::shared_ptr<Vertex> vertex,
-                        std::shared_ptr<Vertex> root) {
+                        Node *node,
+                        Node *root) {
   return false;
 }
 
