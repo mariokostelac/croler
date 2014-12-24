@@ -117,6 +117,9 @@ int main(int argc, char *argv[]) {
       (clock() - start) / static_cast<double>(CLOCKS_PER_SEC));
 
   g.printToGraphviz(graphviz_file);
+
+  // trimming
+  // @mculinovic
   g.trim();
 
   typedef std::shared_ptr< layout::BetterOverlapSet > BetterOverlapSetPtr;
@@ -124,9 +127,9 @@ int main(int argc, char *argv[]) {
   BetterOverlapSetPtr overlap_set = g.extractOverlaps();
 
   fprintf(stderr, "Number of reads after trimmming: %d\n", read_set->size());
-  fprintf(stderr, "Number of edges after trimming: %d\n", overlap_set->size());
+  fprintf(stderr, "Number of overlaps after trimming: %d\n", overlap_set->size());
 
-  u->makeContigs(overlap_set);
+  u->makeContigs(overlap_set, read_set);
 
   n50_value = layout::n50(u->contigs());
   fprintf(stderr, "After trimming n50 = %d\n", n50_value);
