@@ -233,7 +233,7 @@ void merge_offsets(vector<offset_t>& offsets, uint radius) {
 }
 
 void find_overlaps_from_offsets(vector<const char *>& string_list, int t, const char *target, vector<offset_t>& offsets,
-        overlap_band_t* band = NULL, bool forward_overlaps = true) {
+    bool forward_overlaps = true) {
 
     if (offsets.size() == 0) return;
 
@@ -251,11 +251,13 @@ void find_overlaps_from_offsets(vector<const char *>& string_list, int t, const 
         int q = offset.index;
         int len_q = strlen(string_list[q]);
 
+        printf("%d %d %d\n", t, q, offset.hi_offset - offset.lo_offset);
+
         std::pair<int, int> start, end;
         int score = banded_overlap(target, len_t, string_list[q], len_q,
-                offset.lo_offset - ALIGNMENT_BAND_RADIUS, offset.hi_offset + ALIGNMENT_BAND_RADIUS, &start, &end, band);
+                offset.lo_offset - ALIGNMENT_BAND_RADIUS, offset.hi_offset + ALIGNMENT_BAND_RADIUS, &start, &end);
 
-        double len = (end.first - start.first + end.second - start.second) / 2.;
+        double len = abs(end.first - start.first + end.second - start.second) / 2.;
         double errors = (score - len)/(INDEL_SCORE + GAP_SCORE + MISMATCH_SCORE);
         double error_rate = errors / len;
 
@@ -303,7 +305,6 @@ void find_overlaps(vector<const char *>& string_list, Minimizer *minimizer, int 
         results.push_back(pool->enqueue([&string_list, forward_overlaps, max_len, wiggle, merge_radius, &minimizer, &minimizers, t]() {
 
             const char *target = forward_overlaps ? string_list[t] : reversed_complement(string_list[t]);
-            overlap_band_t band(max_len + 1, max_len + 1);
             vector<minimizer_t> curr_minimizers;
             vector<offset_t> curr_offsets;
 
@@ -323,7 +324,7 @@ void find_overlaps(vector<const char *>& string_list, Minimizer *minimizer, int 
             std::sort(curr_offsets.begin(), curr_offsets.end(), sort_offsets);
             merge_offsets(curr_offsets, merge_radius);
 
-            find_overlaps_from_offsets(string_list, t, target, curr_offsets, &band, forward_overlaps);
+            find_overlaps_from_offsets(string_list, t, target, curr_offsets, forward_overlaps);
 
             if (forward_overlaps == false) {
                 delete[] target;
