@@ -43,4 +43,4 @@ int banded_overlap2(const char* a, int alen, const char* b, int blen, int d_min,
         std::pair<int, int>* start, std::pair<int, int>* end, int** score = NULL, char** backtrack = NULL);
 
 int banded_overlap(const char* a, int alen, const char* b, int blen, int d_min, int d_max,
-        std::pair<int, int>* start = NULL, std::pair<int, int>* end = NULL, overlap_band_t* band_out = NULL);
+        std::pair<int, int>* start = NULL, std::pair<int, int>* end = NULL);

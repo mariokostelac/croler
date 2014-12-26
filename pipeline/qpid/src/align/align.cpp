@@ -546,16 +546,14 @@ int banded_overlap2(const char* a, int alen, const char* b, int blen, int d_min,
 
 
 int banded_overlap(const char* a, int alen, const char* b, int blen, int d_min, int d_max,
-        std::pair<int, int>* start, std::pair<int, int>* end, overlap_band_t* band_out) {
+        std::pair<int, int>* start, std::pair<int, int>* end) {
 
-    overlap_band_t* band = band_out;
-
-    if (band == NULL) band = new overlap_band_t(alen + 1, blen + 1);
+    overlap_band_t band(alen + 1, blen + 1);
 
     int start_row = 1;
     if (d_max < 0) start_row = -d_max + 1;
 
-    band->initialize(start_row, alen + 1);
+    band.initialize(start_row, alen + 1);
 
     // calculate score
     for (int i = start_row; i < alen + 1; ++i) {
@@ -567,15 +565,13 @@ int banded_overlap(const char* a, int alen, const char* b, int blen, int d_min, 
         // if both diagonals are positive, we don't need full height of matrix
         if (lo > blen) break;
 
-        band->update_band(lo, hi, i, a, b);
+        band.update_band(lo, hi, i, a, b);
     }
 
-    if (start != NULL)  *start = band->best_start;
-    if (end != NULL)    *end = band->best_end;
+    if (start != NULL)  *start = band.best_start;
+    if (end != NULL)    *end = band.best_end;
 
-    int best_score = band->best_score;
-
-    if (band_out == NULL) delete band;
+    int best_score = band.best_score;
 
     return best_score;
 }
