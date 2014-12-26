@@ -98,19 +98,40 @@ void read_from_fasta(vector<const char *>& string_list, const char *filename) {
     delete timer;
 }
 
+// from http://sourceforge.net/p/amos/mailman/message/19965222/.
+//
+// read a      -------------------|-------------->     bhang
+// read b            ahang     ---------------|--------------->
+//
+// read a           -ahang     ---------------|--------------->
+// read b      -------------------|-------------->     -bhang
 void output_overlap_file(int index1, int index2, int len1, int len2, int score, pair<int, int>& start, std::pair<int, int>& end,
         double errate, bool forward_overlap) {
 
-    int a_hang = abs(len1 - end.first - start.first);
-    int b_hang = abs(len2 - end.second - start.second);
-    if (start.first > 0) {
-        a_hang *= -1;
-        b_hang *= -1;
+    int a_hang, b_hang;
+
+    int overlap_len_a = end.first - start.first;
+    int overlap_len_b = end.second - start.second;
+
+    int a_not_matching = len1 - overlap_len_a;
+    int b_not_matching = len2 - overlap_len_b;
+
+    if (end.first == len1) {
+      // first case from the comment
+      a_hang = a_not_matching;
+      b_hang = b_not_matching;
+    } else if (end.second == len2) {
+      // second case from the comment
+      a_hang = -b_not_matching;
+      b_hang = -a_not_matching;
+    } else {
+      assert(false);
     }
+
     fprintf(OUTPUT_FD, "{OVL adj:%c rds:%d,%d scr:%d ahg:%d bhg:%d }\n",
         forward_overlap ? 'N' : 'I',
-        index1 + 1,
-        index2 + 1,
+        index1,
+        index2,
         score,
         a_hang,
         b_hang
@@ -212,7 +233,7 @@ void merge_offsets(vector<offset_t>& offsets, uint radius) {
 }
 
 void find_overlaps_from_offsets(vector<const char *>& string_list, int t, const char *target, vector<offset_t>& offsets,
-        overlap_band_t* band = NULL, bool forward_overlaps = true) {
+    bool forward_overlaps = true) {
 
     if (offsets.size() == 0) return;
 
@@ -230,11 +251,13 @@ void find_overlaps_from_offsets(vector<const char *>& string_list, int t, const 
         int q = offset.index;
         int len_q = strlen(string_list[q]);
 
+        printf("%d %d %d\n", t, q, offset.hi_offset - offset.lo_offset);
+
         std::pair<int, int> start, end;
         int score = banded_overlap(target, len_t, string_list[q], len_q,
-                offset.lo_offset - ALIGNMENT_BAND_RADIUS, offset.hi_offset + ALIGNMENT_BAND_RADIUS, &start, &end, band);
+                offset.lo_offset - ALIGNMENT_BAND_RADIUS, offset.hi_offset + ALIGNMENT_BAND_RADIUS, &start, &end);
 
-        double len = (end.first - start.first + end.second - start.second) / 2.;
+        double len = abs(end.first - start.first + end.second - start.second) / 2.;
         double errors = (score - len)/(INDEL_SCORE + GAP_SCORE + MISMATCH_SCORE);
         double error_rate = errors / len;
 
@@ -282,7 +305,6 @@ void find_overlaps(vector<const char *>& string_list, Minimizer *minimizer, int 
         results.push_back(pool->enqueue([&string_list, forward_overlaps, max_len, wiggle, merge_radius, &minimizer, &minimizers, t]() {
 
             const char *target = forward_overlaps ? string_list[t] : reversed_complement(string_list[t]);
-            overlap_band_t band(max_len + 1, max_len + 1);
             vector<minimizer_t> curr_minimizers;
             vector<offset_t> curr_offsets;
 
@@ -302,7 +324,7 @@ void find_overlaps(vector<const char *>& string_list, Minimizer *minimizer, int 
             std::sort(curr_offsets.begin(), curr_offsets.end(), sort_offsets);
             merge_offsets(curr_offsets, merge_radius);
 
-            find_overlaps_from_offsets(string_list, t, target, curr_offsets, &band, forward_overlaps);
+            find_overlaps_from_offsets(string_list, t, target, curr_offsets, forward_overlaps);
 
             if (forward_overlaps == false) {
                 delete[] target;
