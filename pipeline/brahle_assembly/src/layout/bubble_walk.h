@@ -6,7 +6,6 @@
 #include <vector>
 #include <set>
 
-#include "layout/string_graph.h"
 #include "layout/vertex.h"
 
 namespace layout {

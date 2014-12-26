@@ -45,6 +45,11 @@ output_funptr output;
 
 ThreadPool* pool;
 
+void usage(int argc, char **argv) {
+  printf("usage:\n");
+  printf("\t%s [-f <fastq_reads>] [-O <output_overlaps_afg>] [-b <amos_input_bank>] [-B <amos_output_bank>]\n", argv[0]);
+}
+
 bool sort_offsets(offset_t a, offset_t b) {
     if (a.index == b.index) {
         return a.lo_offset < b.lo_offset;
@@ -355,6 +360,11 @@ void setup_cmd_interface(int argc, char **argv) {
 int main(int argc, char **argv) {
 
     setup_cmd_interface(argc, argv);
+
+    if (BANK_INPUT == nullptr && INPUT_FILE == nullptr) {
+      usage(argc, argv);
+      exit(1);
+    }
 
     vector<const char *> string_list;
 
