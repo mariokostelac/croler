@@ -98,19 +98,40 @@ void read_from_fasta(vector<const char *>& string_list, const char *filename) {
     delete timer;
 }
 
+// from http://sourceforge.net/p/amos/mailman/message/19965222/.
+//
+// read a      -------------------|-------------->     bhang
+// read b            ahang     ---------------|--------------->
+//
+// read a           -ahang     ---------------|--------------->
+// read b      -------------------|-------------->     -bhang
 void output_overlap_file(int index1, int index2, int len1, int len2, int score, pair<int, int>& start, std::pair<int, int>& end,
         double errate, bool forward_overlap) {
 
-    int a_hang = abs(len1 - end.first - start.first);
-    int b_hang = abs(len2 - end.second - start.second);
-    if (start.first > 0) {
-        a_hang *= -1;
-        b_hang *= -1;
+    int a_hang, b_hang;
+
+    int overlap_len_a = end.first - start.first;
+    int overlap_len_b = end.second - start.second;
+
+    int a_not_matching = len1 - overlap_len_a;
+    int b_not_matching = len2 - overlap_len_b;
+
+    if (end.first == len1) {
+      // first case from the comment
+      a_hang = a_not_matching;
+      b_hang = b_not_matching;
+    } else if (end.second == len2) {
+      // second case from the comment
+      a_hang = -b_not_matching;
+      b_hang = -a_not_matching;
+    } else {
+      assert(false);
     }
+
     fprintf(OUTPUT_FD, "{OVL adj:%c rds:%d,%d scr:%d ahg:%d bhg:%d }\n",
         forward_overlap ? 'N' : 'I',
-        index1 + 1,
-        index2 + 1,
+        index1,
+        index2,
         score,
         a_hang,
         b_hang
