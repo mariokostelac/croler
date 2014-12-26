@@ -179,7 +179,7 @@ inline void Unitigging::removeTransitiveEdges() {
       (transitive_edge_count * 100.0) / no_contains_->size());
 }
 
-void Unitigging::makeContigs(BetterOverlapSetPtr c_overlaps, overlap::ReadSet* read_set) {
+void Unitigging::makeContigs(BetterOverlapSetPtr& c_overlaps, overlap::ReadSet*& read_set) {
   fprintf(stderr, "Reads: %d, Overlaps: %d\n", read_set->size(), c_overlaps->size());
   uint32_t** degrees = new uint32_t*[reads_->size()];
   for (size_t i = 0; i < reads_->size(); ++i) {
