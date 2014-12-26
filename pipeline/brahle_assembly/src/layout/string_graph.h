@@ -140,9 +140,11 @@ class Graph {
   std::deque< Node* > opened_queue;
   std::deque< Node* > closed_queue;
   // maximum number of reads in bubble
-  static const uint32_t MAX_READS = 20;
+  static const uint32_t MAX_READS = 150;
   // maximum distance from starting vertex in bubble
-  static const uint64_t MAX_DISTANCE = 1000;
+  static const uint64_t MAX_DISTANCE = 100000000;
+  // maximum number of variation walks
+  static const uint32_t MAX_WALKS = 6;
 
   overlap::ReadSet* read_set_;
   typedef std::shared_ptr< BetterOverlapSet > BetterOverlapSetPtr;

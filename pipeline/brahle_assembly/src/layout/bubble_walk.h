@@ -20,6 +20,7 @@ class BubbleWalk {
         BubbleWalk& operator=(const BubbleWalk& other);
 
         void addEdge(std::shared_ptr<Edge> edge);
+        std::vector<std::shared_ptr< Edge >>& Edges() { return edges; }
     private:
         std::shared_ptr< Vertex > first;
         std::vector<std::shared_ptr< Edge >> edges;

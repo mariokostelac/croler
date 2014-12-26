@@ -173,6 +173,13 @@ void Vertex::markEdges() {
     }
 }
 
+std::vector<std::shared_ptr< Edge >> Vertex::getEdges() {
+    std::vector<std::shared_ptr< Edge >> all_edges;
+    all_edges.insert(all_edges.end(), edges_B_.begin(), edges_B_.end());
+    all_edges.insert(all_edges.end(), edges_E_.begin(), edges_E_.end());
+    return all_edges;
+}
+
 const std::vector<std::shared_ptr< Edge >>& Vertex::getEdges(uint32_t dir) {
     if (dir == 0)
         return edges_B_;

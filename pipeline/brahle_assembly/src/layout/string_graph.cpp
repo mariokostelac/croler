@@ -205,6 +205,7 @@ void Graph::removeBubbles() {
 
       std::vector<BubbleWalk> bubble_walks;
       getBubbleWalks(vertex, dir, bubble_walks);
+      // fprintf(stderr, "walk: %d\n", bubble_walks.size());
     }
   }
 }
@@ -216,6 +217,7 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
   uint32_t reads_cnt = 0;
   uint64_t distance = 0;
 
+  // puts("BFS");
   // breadth-first search graph
   Node *root = new Node(vertex_root, dir, nullptr, nullptr, 0);
   opened_queue.emplace_back(root);
@@ -245,15 +247,59 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
     opened_queue = expand_queue;
     std::shared_ptr<Vertex> end_vertex;
     if (bubbleFound(root, &end_vertex)) {
+      // puts("Bubble found");
       generateBubbleWalks(vertex_root, end_vertex, bubble_walks);
-      opened_queue.clear();
-      closed_queue.clear();
-      return;
+      break;
     }
   }
   opened_queue.clear();
   closed_queue.clear();
-  bubble_walks.clear();
+
+  if (bubble_walks.size() <= 1 || bubble_walks.size() > MAX_WALKS) {
+    bubble_walks.clear();
+    return;
+  }
+
+  // check that last vertex has same orientation for all walks
+  std::shared_ptr<Edge> last_edge = bubble_walks.front().Edges().back();
+  uint32_t last_direction = !last_edge->label().overlap()->Suf(last_edge->B()->id());
+
+  std::set<uint32_t> vertices_ids;
+  for (size_t i = 0; i < bubble_walks.size(); ++i) {
+    last_edge = bubble_walks[i].Edges().back();
+    if (!last_edge->label().overlap()->Suf(last_edge->B()->id()) != last_direction) {
+      bubble_walks.clear();
+      return;
+    }
+    std::vector<uint32_t> walk_vertices;
+    walk_vertices.emplace_back(vertex_root->id());
+    for (auto const& edge: bubble_walks[i].Edges()) {
+      walk_vertices.emplace_back(edge->B()->id());
+    }
+    for (auto id: walk_vertices) {
+      vertices_ids.insert(id);
+    }
+  }
+
+  std::shared_ptr< Vertex > end_vertex = bubble_walks.front().Edges().back()->B();
+  // check that all links are only to vertices in set
+  for (auto id: vertices_ids) {
+    std::vector<std::shared_ptr< Edge >> v_edges;
+    if (id == vertex_root->id()) {
+      v_edges = getVertex(id)->getEdges(dir);
+    } else if (id == end_vertex->id()) {
+      v_edges = end_vertex->getEdges(last_direction);
+    } else {
+      v_edges = getVertex(id)->getEdges();
+    }
+
+    for (auto const& edge: v_edges) {
+      if (vertices_ids.find(edge->B()->id()) == vertices_ids.end()) {
+        bubble_walks.clear();
+        return;
+      }
+    }
+  }
 }
 
 
