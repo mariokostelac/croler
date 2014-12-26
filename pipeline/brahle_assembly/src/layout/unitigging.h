@@ -78,7 +78,7 @@ class Unitigging {
   /**
    * Creates contigs from given read and overlap sets
    */
-  void makeContigs(BetterOverlapSetPtr c_overlaps, overlap::ReadSet* valid_reads);
+  void makeContigs(BetterOverlapSetPtr& c_overlaps, overlap::ReadSet*& valid_reads);
 
  private:
   overlap::ReadSet* reads_;
