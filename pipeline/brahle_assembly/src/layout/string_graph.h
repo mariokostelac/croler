@@ -190,7 +190,6 @@ class Graph {
                   g.edges_.size(),
                   overlap->overlap()->read_one,
                   g));
-
       g.edges_.push_back(edge_one);
       g.getVertex(overlap->overlap()->read_one)->AddEdge(edge_one);
       g.getVertex(overlap->overlap()->read_one)->AddEdge(
@@ -272,6 +271,20 @@ class Graph {
    * @mculinovic
    */
   bool isEndVertex(std::shared_ptr<Vertex> end, Node *node, Node* root);
+
+  /**
+   * Generates walks to end vertex of a bubble
+   */
+  void generateBubbleWalks(std::shared_ptr< Vertex > start_vertex,
+                           std::shared_ptr< Vertex > end_vertex,
+                           std::vector<BubbleWalk> &bubble_walks);
+
+  /**
+   * Finds end node of bubble walk. End node has vertex with id
+   * same as end_vertex
+   */
+  void findEndNode(Node *node, std::shared_ptr< Vertex > end_vertex,
+                   Node*& end_node);
 };
 
 };  // namespace layout

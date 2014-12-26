@@ -2,22 +2,28 @@
 #ifndef LAYOUT_BUBBLE_WALK_H
 #define LAYOUT_BUBBLE_WALK_H
 
+#include <layout/vertex.h>
+
 #include <memory>
 #include <vector>
 #include <set>
 
-#include "layout/vertex.h"
-
 namespace layout {
+
+class Edge;
 
 class BubbleWalk {
     public:
         explicit BubbleWalk(std::shared_ptr< Vertex > first);
         ~BubbleWalk();
+        BubbleWalk(const BubbleWalk& other);
+        BubbleWalk& operator=(const BubbleWalk& other);
+
+        void addEdge(std::shared_ptr<Edge> edge);
     private:
         std::shared_ptr< Vertex > first;
         std::vector<std::shared_ptr< Edge >> edges;
-        std::set<uint32_t> read_ids;
+        std::set<uint32_t> *read_ids;
 };
 
 };  // namespace layout
