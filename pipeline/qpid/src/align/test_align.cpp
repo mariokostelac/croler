@@ -129,6 +129,17 @@ void test7() {
             == banded_overlap(b, strlen(b), a, strlen(a), -500, 500));
 }
 
+void test8() {
+
+    char a[] = "ACGTACGTACGTAAACGTACGTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    char b[] = "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCACGTACGTACGTAAACGTACGT";
+    std::pair<int, int> start, end;
+
+    int score = banded_overlap(a, strlen(a), b, strlen(b), -500, 500, &start, &end);
+
+    printf("%s %s %d, s: %d %d, e: %d %d\n", a, b, score, start.first, start.second, end.first, end.second);
+}
+
 int main() {
 
     test1();
@@ -138,6 +149,7 @@ int main() {
     test5();
     test6();
     test7();
+    test8();
 
     return 0;
 }
