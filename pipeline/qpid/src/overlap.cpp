@@ -92,9 +92,9 @@ void read_from_bank(vector<Read>& reads, const char *bank_name) {
   bank.seekg(0, AMOS::BankStream_t::BEGIN);
   while (bank >> read) {
     AMOS::Range_t clear = read.getClearRange();
-    const char* seq = read.getSeqString(clear).c_str();
-    char* cpy = new char[strlen(seq) + 1];
-    strcpy(cpy, seq);
+    string seq = read.getSeqString(clear);
+    char* cpy = new char[seq.length() + 1];
+    strcpy(cpy, seq.c_str());
     int id = read.getIID();
     reads.push_back(Read(id, cpy));
   }
@@ -252,8 +252,6 @@ void find_overlaps_from_offsets(vector<Read>& reads, int t, const Read &target, 
         auto& offset = offsets[j];
         int q = offset.index;
         int len_q = strlen(reads[q].sequence);
-
-        printf("%d %d %d\n", t, q, offset.hi_offset - offset.lo_offset);
 
         std::pair<int, int> start, end;
         int score = banded_overlap(target.sequence, len_t, reads[q].sequence, len_q,
