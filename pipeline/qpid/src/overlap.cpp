@@ -14,15 +14,16 @@
 #include "./memory.cpp"
 #include "./align/align.h"
 #include "./parsero/parsero.h"
+#include "./read.h"
 using std::vector;
 using std::string;
 using std::pair;
 
 typedef unsigned int uint;
 typedef void (*output_funptr)(
-    int index1, int index2, int len1, int len2, int score,
-    std::pair<int, int>& start, std::pair<int, int>& end,
-    double errate, bool forward_overlap);
+    const Read& r1, const Read& r2, const int& score,
+    const std::pair<int, int>& start, const std::pair<int, int>& end,
+    const double& errate, const bool& forward_overlap);
 
 // init fasta/fastq reader
 KSEQ_INIT(gzFile, gzread)
@@ -57,7 +58,30 @@ bool sort_offsets(offset_t a, offset_t b) {
     return a.index < b.index;
 }
 
-void read_from_bank(vector<const char *>& reads, const char *bank_name) {
+void read_from_fasta(vector<Read>& reads, const char *filename) {
+    Timer* timer = new Timer("reading");
+
+    fprintf(stderr, "* Reading from file %s...\n", filename);
+
+    gzFile fp = gzopen(filename, "r");      // STEP 2: open the file handler
+    kseq_t *seq = kseq_init(fp);            // STEP 3: initialize seq
+
+    int len = 0;
+    int id = 0;
+    while ((len = kseq_read(seq)) > 0) {    // STEP 4: read sequence
+        char *read_string = new char[len + 1];
+        strcpy(read_string, seq->seq.s);
+        reads.push_back(Read(id++, read_string));
+    }
+
+    kseq_destroy(seq);      // STEP 5: destroy seq
+    gzclose(fp);            // STEP 6: close the file handler
+
+    timer->end(true);
+    delete timer;
+}
+
+void read_from_bank(vector<Read>& reads, const char *bank_name) {
 
   AMOS::BankStream_t bank(AMOS::Read_t::NCODE);
   assert(bank.exists(bank_name));
@@ -68,34 +92,15 @@ void read_from_bank(vector<const char *>& reads, const char *bank_name) {
   bank.seekg(0, AMOS::BankStream_t::BEGIN);
   while (bank >> read) {
     AMOS::Range_t clear = read.getClearRange();
-    string seq = read.getSeqString(clear);
-    reads.push_back(strdup(seq.c_str()));
+    const char* seq = read.getSeqString(clear).c_str();
+    char* cpy = new char[strlen(seq) + 1];
+    strcpy(cpy, seq);
+    int id = read.getIID();
+    reads.push_back(Read(id, cpy));
   }
 
   bank.close();
   return;
-}
-
-void read_from_fasta(vector<const char *>& string_list, const char *filename) {
-    Timer* timer = new Timer("reading");
-
-    fprintf(stderr, "* Reading from file %s...\n", filename);
-
-    gzFile fp = gzopen(filename, "r");      // STEP 2: open the file handler
-    kseq_t *seq = kseq_init(fp);            // STEP 3: initialize seq
-
-    int len = 0;
-    while ((len = kseq_read(seq)) > 0) {    // STEP 4: read sequence
-        char *read_string = new char[len + 1];
-        strcpy(read_string, seq->seq.s);
-        string_list.push_back(read_string);
-    }
-
-    kseq_destroy(seq);      // STEP 5: destroy seq
-    gzclose(fp);            // STEP 6: close the file handler
-
-    timer->end(true);
-    delete timer;
 }
 
 // from http://sourceforge.net/p/amos/mailman/message/19965222/.
@@ -105,11 +110,13 @@ void read_from_fasta(vector<const char *>& string_list, const char *filename) {
 //
 // read a           -ahang     ---------------|--------------->
 // read b      -------------------|-------------->     -bhang
-void output_overlap_file(int index1, int index2, int len1, int len2, int score, pair<int, int>& start, std::pair<int, int>& end,
-        double errate, bool forward_overlap) {
+void output_overlap_file(const Read& r1, const Read& r2, const int& score, const pair<int, int>& start, const std::pair<int, int>& end,
+        const double& errate, const bool& forward_overlap) {
 
     int a_hang, b_hang;
 
+    int len1 = strlen(r1.sequence);
+    int len2 = strlen(r2.sequence);
     int overlap_len_a = end.first - start.first;
     int overlap_len_b = end.second - start.second;
 
@@ -130,16 +137,20 @@ void output_overlap_file(int index1, int index2, int len1, int len2, int score, 
 
     fprintf(OUTPUT_FD, "{OVL adj:%c rds:%d,%d scr:%d ahg:%d bhg:%d }\n",
         forward_overlap ? 'N' : 'I',
-        index1,
-        index2,
+        r1.id,
+        r2.id,
         score,
         a_hang,
         b_hang
    );
 }
 
-void output_overlap_bank(int index1, int index2, int len1, int len2, int score, pair<int, int>& start, pair<int, int>& end,
-    double errate, bool forward_overlap) {
+// TODO(mk): fix this
+void output_overlap_bank(const Read& r1, const Read& r2, const int& score, const pair<int, int>& start, const std::pair<int, int>& end,
+        const double& errate, const bool& forward_overlap) {
+
+  int len1 = strlen(r1.sequence);
+  int len2 = strlen(r2.sequence);
 
   int a_hang = abs(len1 - end.first - start.first);
   int b_hang = abs(len2 - end.second - start.second);
@@ -149,7 +160,7 @@ void output_overlap_bank(int index1, int index2, int len1, int len2, int score, 
   }
 
   AMOS::Overlap_t overlap;
-  std::pair<AMOS::ID_t, AMOS::ID_t> read_pair(index1 + 1, index2 + 1);
+  std::pair<AMOS::ID_t, AMOS::ID_t> read_pair(r1.id, r2.id);
 
   if (forward_overlap) {
     overlap.setAdjacency(AMOS::Overlap_t::NORMAL);
@@ -159,15 +170,6 @@ void output_overlap_bank(int index1, int index2, int len1, int len2, int score, 
   overlap.setReads(read_pair);
   overlap.setAhang(a_hang);
   overlap.setBhang(b_hang);
-
-  //fprintf(OUTPUT_FD, "{OVL adj:%c rds:%d,%d scr:%d ahg:%d bhg:%d }\n",
-      //forward_overlap ? 'N' : 'I',
-      //index1 + 1,
-      //index2 + 1,
-      //score,
-      //a_hang,
-      //b_hang
-  //);
 
   bank_mutex.lock();
   (*bank_output) << overlap;
@@ -181,17 +183,17 @@ char base_complement(char base) {
     else                    return 'A';
 }
 
-char* reversed_complement(const char *seq) {
+const Read reversed_complement(const Read& read) {
 
-    int len = strlen(seq);
+    int len = strlen(read.sequence);
     char* result = new char[len + 1];
     result[len] = 0;
 
     for (int i = 0; i < len; ++i) {
-        result[i] = base_complement(seq[len - i - 1]);
+        result[i] = base_complement(read.sequence[len - i - 1]);
     }
 
-    return result;
+    return Read(read.id, result);
 }
 
 void add_offset(vector<offset_t>& offsets, unsigned int str_index, int offset, int wiggle) {
@@ -232,16 +234,16 @@ void merge_offsets(vector<offset_t>& offsets, uint radius) {
     offsets.resize(curr + 1);
 }
 
-void find_overlaps_from_offsets(vector<const char *>& string_list, int t, const char *target, vector<offset_t>& offsets,
+void find_overlaps_from_offsets(vector<Read>& reads, int t, const Read &target, vector<offset_t>& offsets,
     bool forward_overlaps = true) {
 
     if (offsets.size() == 0) return;
 
-    int len_t = strlen(target);
+    int len_t = strlen(target.sequence);
 
     // variables used for tracking the best overlap for current pair
     int last_q = offsets[0].index;
-    int best_q = -1, best_len_q = -1, best_score = -1;
+    int best_q = -1, best_score = -1;
     double best_errate = 0;
     std::pair<int, int> best_start, best_end;
 
@@ -249,12 +251,12 @@ void find_overlaps_from_offsets(vector<const char *>& string_list, int t, const 
 
         auto& offset = offsets[j];
         int q = offset.index;
-        int len_q = strlen(string_list[q]);
+        int len_q = strlen(reads[q].sequence);
 
         printf("%d %d %d\n", t, q, offset.hi_offset - offset.lo_offset);
 
         std::pair<int, int> start, end;
-        int score = banded_overlap(target, len_t, string_list[q], len_q,
+        int score = banded_overlap(target.sequence, len_t, reads[q].sequence, len_q,
                 offset.lo_offset - ALIGNMENT_BAND_RADIUS, offset.hi_offset + ALIGNMENT_BAND_RADIUS, &start, &end);
 
         double len = abs(end.first - start.first + end.second - start.second) / 2.;
@@ -264,7 +266,7 @@ void find_overlaps_from_offsets(vector<const char *>& string_list, int t, const 
         // output best overlap for previous pair (t, q)
         if (q != last_q) {
             if (best_errate < MAXIMUM_ERROR_RATE) {
-                output(t, best_q, len_t, best_len_q, best_score, best_start, best_end, best_errate, forward_overlaps);
+                output(reads[t], reads[best_q], best_score, best_start, best_end, best_errate, forward_overlaps);
             }
             best_score = -1;
             best_errate = 1000;
@@ -273,7 +275,6 @@ void find_overlaps_from_offsets(vector<const char *>& string_list, int t, const 
         // set best score for current (t, q)
         if (best_q == -1 || score > best_score) {
             best_q = q;
-            best_len_q = len_q;
             best_score = score;
             best_start = start;
             best_end = end;
@@ -285,30 +286,24 @@ void find_overlaps_from_offsets(vector<const char *>& string_list, int t, const 
 
     // output best overlap for last pair (t, q)
     if (best_errate < MAXIMUM_ERROR_RATE) {
-        output(t, best_q, len_t, best_len_q, best_score, best_start, best_end, best_errate, forward_overlaps);
+        output(reads[t], reads[best_q], best_score, best_start, best_end, best_errate, forward_overlaps);
     }
 }
 
-void find_overlaps(vector<const char *>& string_list, Minimizer *minimizer, int wiggle, int merge_radius, bool forward_overlaps = true) {
-
-    // find longest string so we could create band
-    unsigned long max_len = 0;
-    for (int i = 0, len = string_list.size(); i < len; ++i) {
-        max_len = std::max(max_len, strlen(string_list[i]));
-    }
+void find_overlaps(vector<Read>& reads, Minimizer *minimizer, int wiggle, int merge_radius, bool forward_overlaps = true) {
 
     const minimizers_t& minimizers = minimizer->get_minimizers();
 
     vector<std::future<void>> results;
-    for (int t = 0, tlen = string_list.size(); t < tlen; ++t) {
+    for (int t = 0, tlen = reads.size(); t < tlen; ++t) {
 
-        results.push_back(pool->enqueue([&string_list, forward_overlaps, max_len, wiggle, merge_radius, &minimizer, &minimizers, t]() {
+        results.push_back(pool->enqueue([&reads, forward_overlaps, wiggle, merge_radius, &minimizer, &minimizers, t]() {
 
-            const char *target = forward_overlaps ? string_list[t] : reversed_complement(string_list[t]);
+            const Read &target = forward_overlaps ? reads[t] : reversed_complement(reads[t]);
             vector<minimizer_t> curr_minimizers;
             vector<offset_t> curr_offsets;
 
-            minimizer->calculate_and_get(curr_minimizers, target);
+            minimizer->calculate_and_get(curr_minimizers, target.sequence);
 
             for (uint m = 0, mlen = curr_minimizers.size(); m < mlen; ++m) {
                 auto list = minimizers.get_list(curr_minimizers[m].str);
@@ -324,11 +319,7 @@ void find_overlaps(vector<const char *>& string_list, Minimizer *minimizer, int 
             std::sort(curr_offsets.begin(), curr_offsets.end(), sort_offsets);
             merge_offsets(curr_offsets, merge_radius);
 
-            find_overlaps_from_offsets(string_list, t, target, curr_offsets, forward_overlaps);
-
-            if (forward_overlaps == false) {
-                delete[] target;
-            }
+            find_overlaps_from_offsets(reads, t, target, curr_offsets, forward_overlaps);
         }));
     }
 
@@ -388,7 +379,7 @@ int main(int argc, char **argv) {
       exit(1);
     }
 
-    vector<const char *> string_list;
+    vector<Read> reads;
 
     // initialize a thread pool used for finding overlaps
     pool = new ThreadPool(THREADS_NUM);
@@ -396,13 +387,13 @@ int main(int argc, char **argv) {
     // read rads
     if (BANK_INPUT == NULL) {
       // read the data
-      read_from_fasta(string_list, INPUT_FILE);
+      read_from_fasta(reads, INPUT_FILE);
     } else {
       // read the data
-      read_from_bank(string_list, BANK_INPUT);
+      read_from_bank(reads, BANK_INPUT);
     }
 
-    fprintf(stderr, "* Read %lu strings...\n", string_list.size());
+    fprintf(stderr, "* Read %lu strings...\n", reads.size());
 
     // setup output
     if (BANK_OUTPUT == NULL) {
@@ -420,18 +411,18 @@ int main(int argc, char **argv) {
     Minimizer *m = new Minimizer(16, 20);
 
     Timer mtimer("calculating minimizers");
-    for (int i = 0, len = string_list.size(); i < len; ++i) {
-      m->calculate_and_store(i, string_list[i]);
+    for (int i = 0, len = reads.size(); i < len; ++i) {
+      m->calculate_and_store(i, reads[i].sequence);
     }
     mtimer.end();
 
     try {
       Timer ftimer("calculating forward overlaps");
-      find_overlaps(string_list, m, OFFSET_WIGGLE, MERGE_RADIUS, true);
+      find_overlaps(reads, m, OFFSET_WIGGLE, MERGE_RADIUS, true);
       ftimer.end();
 
       Timer btimer("calculating backward overlaps");
-      find_overlaps(string_list, m, OFFSET_WIGGLE, MERGE_RADIUS, false);
+      find_overlaps(reads, m, OFFSET_WIGGLE, MERGE_RADIUS, false);
       btimer.end();
     } catch (AMOS::Exception_t &e) {
       fprintf(stderr, "%s:%d %s", e.file(), e.line(), e.what());
@@ -439,8 +430,8 @@ int main(int argc, char **argv) {
     }
 
     // cleaning up the mess
-    for (int i = 0, len = string_list.size(); i < len; ++i) {
-        delete[] string_list[i];
+    for (int i = 0, len = reads.size(); i < len; ++i) {
+        delete[] reads[i].sequence;
     }
 
     delete m;
