@@ -110,6 +110,12 @@ class Vertex {
    */
   const uint32_t count_edges_dir2() const { return edges_dir2_.size() ;}
 
+
+  /**
+   * Return all edges of vertex
+   */
+  std::vector<std::shared_ptr< Edge >> getEdges();
+
     /**
    * Returns edges of vertex where read of overlap is prefix
    */
