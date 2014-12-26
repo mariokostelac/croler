@@ -149,8 +149,8 @@ KSEQ_INIT(gzFile, gzread)
             &score,
             &hang_one,
             &hang_two) == 6) {
-        --read_one;
-        --read_two;
+        // --read_one;
+        // --read_two;
         std::pair<int, int> lenghts = getOverlapLengths(read_set, read_one, read_two, hang_one, hang_two);
         overlap_set->Add(new overlap::Overlap(
               read_one,

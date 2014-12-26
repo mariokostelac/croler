@@ -20,7 +20,9 @@ class Node {
     ~Node();
     uint32_t expand(std::deque<Node*>& expand_queue);
 
+    const std::shared_ptr< Edge >& edge_from_parent() const { return edge_from_parent_; }
     const std::shared_ptr< Vertex >& vertex() const { return vertex_; }
+    Node* parent() const { return parent_; }
 
   private:
     std::shared_ptr<Vertex> vertex_;

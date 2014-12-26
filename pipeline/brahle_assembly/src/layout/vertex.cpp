@@ -46,7 +46,8 @@ void Vertex::eraseEdgeB(std::shared_ptr< Edge > edge) {
     bool found = false;
     std::vector<std::shared_ptr< Edge >> temp_edges;
     for (i = 0; i < edges_B_.size(); ++i) {
-        if (edges_B_[i]->label().overlap() == edge->label().overlap()) {
+        if (edges_B_[i]->A()->id() == edge->B()->id() && edges_B_[i]->B()->id() == edge->A()->id()) {
+        // if (edges_B_[i]->label().overlap() == edge->label().overlap()) {
             found = true;
         } else {
             temp_edges.push_back(edges_B_[i]);
@@ -61,7 +62,8 @@ void Vertex::eraseEdgeE(std::shared_ptr< Edge > edge) {
     bool found = false;
     std::vector<std::shared_ptr< Edge >> temp_edges;
     for (i = 0; i < edges_E_.size(); ++i) {
-        if (edges_E_[i]->label().overlap() == edge->label().overlap()) {
+        if (edges_E_[i]->A()->id() == edge->B()->id() && edges_E_[i]->B()->id() == edge->A()->id()) {
+        // if (edges_E_[i]->label().overlap() == edge->label().overlap()) {
             found = true;
         } else {
             temp_edges.push_back(edges_E_[i]);
@@ -76,7 +78,8 @@ void Vertex::eraseEdgeDir1(std::shared_ptr< Edge > edge) {
     bool found = false;
     std::vector<std::shared_ptr< Edge >> temp_edges;
     for (i = 0; i < edges_dir1_.size(); ++i) {
-        if (edges_dir1_[i]->label().overlap() == edge->label().overlap()) {
+        if (edges_dir1_[i]->A()->id() == edge->B()->id() && edges_dir1_[i]->B()->id() == edge->A()->id()) {
+        // if (edges_dir1_[i]->label().overlap() == edge->label().overlap()) {
             found = true;
         } else {
             temp_edges.push_back(edges_dir1_[i]);
@@ -96,7 +99,8 @@ void Vertex::eraseEdgeDir2(std::shared_ptr< Edge > edge) {
     bool found = false;
     std::vector<std::shared_ptr< Edge >> temp_edges;
     for (i = 0; i < edges_dir2_.size(); ++i) {
-        if (edges_dir2_[i]->label().overlap() == edge->label().overlap()) {
+        if (edges_dir2_[i]->A()->id() == edge->B()->id() && edges_dir2_[i]->B()->id() == edge->A()->id()) {
+        // if (edges_dir2_[i]->label().overlap() == edge->label().overlap()) {
             found = true;
         } else {
             temp_edges.push_back(edges_dir2_[i]);
@@ -124,7 +128,8 @@ void Vertex::markEdges() {
             edges_opposite = edge->B()->getEdgesDir1();
         }
         for (auto const& pair_edge: edges_opposite) {
-            if (pair_edge->label().overlap() == edge->label().overlap()) {
+            if (pair_edge->A()->id() == edge->B()->id() && pair_edge->B()->id() == edge->A()->id()) {
+            // if (pair_edge->label().overlap() == edge->label().overlap()) {
                 // fprintf(stderr, "Par: %d %d\n", pair_edge->A()->id(), pair_edge->B()->id());
                 pair_edge->mark();
                 if (dir == 1) {
@@ -150,7 +155,8 @@ void Vertex::markEdges() {
             edges_opposite = edge->B()->getEdgesDir1();
         }
         for (auto const& pair_edge: edges_opposite) {
-            if (pair_edge->label().overlap() == edge->label().overlap()) {
+            if (pair_edge->A()->id() == edge->B()->id() && pair_edge->B()->id() == edge->A()->id()) {
+            // if (pair_edge->label().overlap() == edge->label().overlap()) {
                 // fprintf(stderr, "Par: %d %d\n", pair_edge->A()->id(), pair_edge->B()->id());
                 pair_edge->mark();
                 if (dir == 1) {

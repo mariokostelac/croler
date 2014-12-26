@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <deque>
+#include <set>
 
 #include "layout/string_graph.h"
 
@@ -208,15 +209,15 @@ void Graph::removeBubbles() {
   }
 }
 
+
 void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
                             size_t dir,
                             std::vector<BubbleWalk> &bubble_walks) {
-  // breadth-first search graph
   uint32_t reads_cnt = 0;
   uint64_t distance = 0;
 
+  // breadth-first search graph
   Node *root = new Node(vertex_root, dir, nullptr, nullptr, 0);
-
   opened_queue.emplace_back(root);
   ++reads_cnt;
   while (!opened_queue.empty()) {
@@ -244,7 +245,9 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
     opened_queue = expand_queue;
     std::shared_ptr<Vertex> end_vertex;
     if (bubbleFound(root, &end_vertex)) {
-      // add bubble walks to vector
+      generateBubbleWalks(vertex_root, end_vertex, bubble_walks);
+      opened_queue.clear();
+      closed_queue.clear();
       return;
     }
   }
@@ -252,6 +255,7 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
   closed_queue.clear();
   bubble_walks.clear();
 }
+
 
 bool Graph::bubbleFound(Node* root, std::shared_ptr<Vertex>* end) {
   std::deque< Node* > nodes;
@@ -274,13 +278,67 @@ bool Graph::bubbleFound(Node* root, std::shared_ptr<Vertex>* end) {
       return true;
     }
   }
+  end->reset();
   return false;
 }
 
 bool Graph::isEndVertex(std::shared_ptr<Vertex> end,
                         Node *node,
                         Node *root) {
-  return false;
+  if (node == nullptr) return false;
+  if (node->vertex()->id() == end->id() && node != root) return true;
+  return isEndVertex(end, node->parent(), root);
+}
+
+
+void Graph::generateBubbleWalks(std::shared_ptr< Vertex > start_vertex,
+                                std::shared_ptr< Vertex > end_vertex,
+                                std::vector<BubbleWalk> &bubble_walks) {
+  std::deque< Node* > nodes;
+  nodes.insert(nodes.end(), opened_queue.begin(), opened_queue.end());
+  nodes.insert(nodes.end(), closed_queue.begin(), closed_queue.end());
+
+  std::set< Node *> end_nodes;
+  for (auto const &node: nodes) {
+    Node* end_node = nullptr;
+    findEndNode(node, end_vertex, end_node);
+    assert(end_node != nullptr);
+    end_nodes.insert(end_node);
+  }
+
+  nodes.clear();
+  nodes.insert(nodes.end(), end_nodes.begin(), end_nodes.end());
+
+  for (Node* node: nodes) {
+    std::vector<std::shared_ptr< Edge >> walk_edges;
+    while (node->parent() != nullptr) {
+      walk_edges.emplace_back(node->edge_from_parent());
+      node = node->parent();
+    }
+
+    // create walk from walk edges
+    BubbleWalk* new_walk = new BubbleWalk(start_vertex);
+    for (std::vector<std::shared_ptr< Edge >>::reverse_iterator it = walk_edges.rbegin();
+          it != walk_edges.rend(); ++it) {
+      new_walk->addEdge(*it);
+    }
+    bubble_walks.emplace_back(*new_walk);
+    delete new_walk;
+    new_walk = nullptr;
+  }
+}
+
+void Graph::findEndNode(Node *node, std::shared_ptr< Vertex > end_vertex,
+                        Node*& end_node) {
+  if (node == nullptr) {
+    end_node = nullptr;
+    return;
+  }
+  if (node->vertex()->id() == end_vertex->id()) {
+    end_node = node;
+    return;
+  }
+  return findEndNode(node->parent(), end_vertex, end_node);
 }
 
 };  // namespace layout
