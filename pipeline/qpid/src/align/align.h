@@ -1,3 +1,7 @@
+
+#ifndef _ALIGN_H
+#define _ALIGN_H
+
 #include <cstdlib>
 #include <utility>
 
@@ -44,3 +48,5 @@ int banded_overlap2(const char* a, int alen, const char* b, int blen, int d_min,
 
 int banded_overlap(const char* a, int alen, const char* b, int blen, int d_min, int d_max,
         std::pair<int, int>* start = NULL, std::pair<int, int>* end = NULL);
+
+#endif
