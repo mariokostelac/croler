@@ -18,12 +18,10 @@
 using std::vector;
 using std::string;
 using std::pair;
+using std::swap;
 
 typedef unsigned int uint;
-typedef void (*output_funptr)(
-    const Read& r1, const Read& r2, const int& score,
-    const std::pair<int, int>& start, const std::pair<int, int>& end,
-    const double& errate, const bool& forward_overlap);
+typedef void (*output_funptr)(const Overlap& overlap, const bool& forward_overlap);
 
 // init fasta/fastq reader
 KSEQ_INIT(gzFile, gzread)
@@ -103,76 +101,32 @@ void read_from_bank(vector<Read>& reads, const char *bank_name) {
   return;
 }
 
-// from http://sourceforge.net/p/amos/mailman/message/19965222/.
-//
-// read a      -------------------|-------------->     bhang
-// read b            ahang     ---------------|--------------->
-//
-// read a           -ahang     ---------------|--------------->
-// read b      -------------------|-------------->     -bhang
-void output_overlap_file(const Read& r1, const Read& r2, const int& score, const pair<int, int>& start, const std::pair<int, int>& end,
-        const double& errate, const bool& forward_overlap) {
-
-    int a_hang, b_hang;
-
-    int len1 = strlen(r1.sequence);
-    int len2 = strlen(r2.sequence);
-    int overlap_len_a = end.first - start.first;
-    int overlap_len_b = end.second - start.second;
-
-    int a_not_matching = len1 - overlap_len_a;
-    int b_not_matching = len2 - overlap_len_b;
-
-    if (end.first == len1) {
-      // first case from the comment
-      a_hang = a_not_matching;
-      b_hang = b_not_matching;
-    } else if (end.second == len2) {
-      // second case from the comment
-      a_hang = -b_not_matching;
-      b_hang = -a_not_matching;
-    } else {
-      assert(false);
-    }
-
+void output_overlap_file(const Overlap& overlap, const bool& forward_overlap) {
     fprintf(OUTPUT_FD, "{OVL adj:%c rds:%d,%d scr:%d ahg:%d bhg:%d }\n",
         forward_overlap ? 'N' : 'I',
-        r1.id,
-        r2.id,
-        score,
-        a_hang,
-        b_hang
+        overlap.r1.id,
+        overlap.r2.id,
+        (int) overlap.score,
+        overlap.a_hang,
+        overlap.b_hang
    );
 }
 
-// TODO(mk): fix this
-void output_overlap_bank(const Read& r1, const Read& r2, const int& score, const pair<int, int>& start, const std::pair<int, int>& end,
-        const double& errate, const bool& forward_overlap) {
-
-  int len1 = strlen(r1.sequence);
-  int len2 = strlen(r2.sequence);
-
-  int a_hang = abs(len1 - end.first - start.first);
-  int b_hang = abs(len2 - end.second - start.second);
-  if (start.first > 0) {
-    a_hang *= -1;
-    b_hang *= -1;
-  }
-
-  AMOS::Overlap_t overlap;
-  std::pair<AMOS::ID_t, AMOS::ID_t> read_pair(r1.id, r2.id);
+void output_overlap_bank(const Overlap& overlap, const bool& forward_overlap) {
+  AMOS::Overlap_t amos_overlap;
+  std::pair<AMOS::ID_t, AMOS::ID_t> read_pair(overlap.r1.id, overlap.r2.id);
 
   if (forward_overlap) {
-    overlap.setAdjacency(AMOS::Overlap_t::NORMAL);
+    amos_overlap.setAdjacency(AMOS::Overlap_t::NORMAL);
   } else {
-    overlap.setAdjacency(AMOS::Overlap_t::INNIE);
+    amos_overlap.setAdjacency(AMOS::Overlap_t::INNIE);
   }
-  overlap.setReads(read_pair);
-  overlap.setAhang(a_hang);
-  overlap.setBhang(b_hang);
+  amos_overlap.setReads(read_pair);
+  amos_overlap.setAhang(overlap.a_hang);
+  amos_overlap.setBhang(overlap.b_hang);
 
   bank_mutex.lock();
-  (*bank_output) << overlap;
+  (*bank_output) << amos_overlap;
   bank_mutex.unlock();
 }
 
@@ -237,54 +191,46 @@ void merge_offsets(vector<offset_t>& offsets, uint radius) {
 void find_overlaps_from_offsets(vector<Read>& reads, int t, const Read &target, vector<offset_t>& offsets,
     bool forward_overlaps = true) {
 
-    if (offsets.size() == 0) return;
-
     int len_t = strlen(target.sequence);
 
-    // variables used for tracking the best overlap for current pair
-    int last_q = offsets[0].index;
-    int best_q = -1, best_score = -1;
-    double best_errate = 0;
-    std::pair<int, int> best_start, best_end;
+    int i = 0, offsets_len = offsets.size();
+    while (i < offsets_len) {
+      Overlap best_overlap;
+      std::pair<int, int> start, end;
+      int q = offsets[i].index;
+      int len_q = strlen(reads[q].sequence);
 
-    for (int j = 0, jlen = offsets.size(); j < jlen; ++j) {
+      int first_j = i;
+      for (int j = i; j < offsets_len && offsets[j].index == q; ++j, ++i) {
+        offset_t& offset = offsets[j];
+        int score = banded_overlap(
+            target.sequence,
+            len_t,
+            reads[q].sequence,
+            len_q,
+            offset.lo_offset - ALIGNMENT_BAND_RADIUS,
+            offset.hi_offset + ALIGNMENT_BAND_RADIUS,
+            &start,
+            &end
+        );
 
-        auto& offset = offsets[j];
-        int q = offset.index;
-        int len_q = strlen(reads[q].sequence);
-
-        std::pair<int, int> start, end;
-        int score = banded_overlap(target.sequence, len_t, reads[q].sequence, len_q,
-                offset.lo_offset - ALIGNMENT_BAND_RADIUS, offset.hi_offset + ALIGNMENT_BAND_RADIUS, &start, &end);
-
-        double len = abs(end.first - start.first + end.second - start.second) / 2.;
-        double errors = (score - len)/(INDEL_SCORE + GAP_SCORE + MISMATCH_SCORE);
-        double error_rate = errors / len;
-
-        // output best overlap for previous pair (t, q)
-        if (q != last_q) {
-            if (best_errate < MAXIMUM_ERROR_RATE) {
-                output(reads[t], reads[best_q], best_score, best_start, best_end, best_errate, forward_overlaps);
-            }
-            best_score = -1;
-            best_errate = 1000;
+        Overlap curr_overlap;
+        if (forward_overlaps) {
+          curr_overlap = Overlap(reads[t], reads[q], score, start, end);
+        } else {
+          swap(start.first, start.second);
+          swap(end.first, end.second);
+          curr_overlap = Overlap(reads[q], reads[t], score, start, end);
         }
 
-        // set best score for current (t, q)
-        if (best_q == -1 || score > best_score) {
-            best_q = q;
-            best_score = score;
-            best_start = start;
-            best_end = end;
-            best_errate = error_rate;
+        if (j == first_j || score > best_overlap.score) {
+          best_overlap = curr_overlap;
         }
+      }
 
-        last_q = q;
-    }
-
-    // output best overlap for last pair (t, q)
-    if (best_errate < MAXIMUM_ERROR_RATE) {
-        output(reads[t], reads[best_q], best_score, best_start, best_end, best_errate, forward_overlaps);
+      if (best_overlap.error_rate < MAXIMUM_ERROR_RATE) {
+        output(best_overlap, forward_overlaps);
+      }
     }
 }
 
