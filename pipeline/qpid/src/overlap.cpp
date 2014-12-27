@@ -1,8 +1,7 @@
 #include "./overlap.h"
 #include <zlib.h>
 #include <cstdlib>
-#include <cstring>
-#include <cstdio>
+#include <cstring> #include <cstdio>
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -21,7 +20,7 @@ using std::pair;
 using std::swap;
 
 typedef unsigned int uint;
-typedef void (*output_funptr)(const Overlap& overlap, const bool& forward_overlap);
+typedef void (*output_funptr)(const Overlap& overlap);
 
 // init fasta/fastq reader
 KSEQ_INIT(gzFile, gzread)
@@ -30,7 +29,7 @@ int THREADS_NUM = 4;
 int ALIGNMENT_BAND_RADIUS = 5;
 int OFFSET_WIGGLE = 3;
 int MERGE_RADIUS = 5 * ALIGNMENT_BAND_RADIUS;
-double MAXIMUM_ERROR_RATE = 0.05;
+double MAXIMUM_ERROR_RATE = 0.03;
 
 char *INPUT_FILE = NULL;
 FILE *OUTPUT_FD = stdout;
@@ -101,9 +100,9 @@ void read_from_bank(vector<Read>& reads, const char *bank_name) {
   return;
 }
 
-void output_overlap_file(const Overlap& overlap, const bool& forward_overlap) {
+void output_overlap_file(const Overlap& overlap) {
     fprintf(OUTPUT_FD, "{OVL adj:%c rds:%d,%d scr:%d ahg:%d bhg:%d }\n",
-        forward_overlap ? 'N' : 'I',
+        overlap.normal_overlap ? 'N' : 'I',
         overlap.r1.id,
         overlap.r2.id,
         (int) overlap.score,
@@ -112,11 +111,11 @@ void output_overlap_file(const Overlap& overlap, const bool& forward_overlap) {
    );
 }
 
-void output_overlap_bank(const Overlap& overlap, const bool& forward_overlap) {
+void output_overlap_bank(const Overlap& overlap) {
   AMOS::Overlap_t amos_overlap;
   std::pair<AMOS::ID_t, AMOS::ID_t> read_pair(overlap.r1.id, overlap.r2.id);
 
-  if (forward_overlap) {
+  if (overlap.normal_overlap) {
     amos_overlap.setAdjacency(AMOS::Overlap_t::NORMAL);
   } else {
     amos_overlap.setAdjacency(AMOS::Overlap_t::INNIE);
@@ -150,7 +149,7 @@ const Read reversed_complement(const Read& read) {
     return Read(read.id, result);
 }
 
-void add_offset(vector<offset_t>& offsets, unsigned int str_index, int offset, int wiggle) {
+void add_offset(vector<offset_t>& offsets, const int& str_index, const int& offset, const int& wiggle) {
 
     // extend existing offset if it is possible
     for (int i = 0, len = offsets.size(); i < len; ++i) {
@@ -189,7 +188,7 @@ void merge_offsets(vector<offset_t>& offsets, uint radius) {
 }
 
 void find_overlaps_from_offsets(vector<Read>& reads, int t, const Read &target, vector<offset_t>& offsets,
-    bool forward_overlaps = true) {
+    bool target_forward_oriented) {
 
     int len_t = strlen(target.sequence);
 
@@ -214,14 +213,7 @@ void find_overlaps_from_offsets(vector<Read>& reads, int t, const Read &target, 
             &end
         );
 
-        Overlap curr_overlap;
-        if (forward_overlaps) {
-          curr_overlap = Overlap(reads[t], reads[q], score, start, end);
-        } else {
-          swap(start.first, start.second);
-          swap(end.first, end.second);
-          curr_overlap = Overlap(reads[q], reads[t], score, start, end);
-        }
+        Overlap curr_overlap(reads[t], reads[q], score, start, end, target_forward_oriented, true);
 
         if (j == first_j || score > best_overlap.score) {
           best_overlap = curr_overlap;
@@ -229,7 +221,7 @@ void find_overlaps_from_offsets(vector<Read>& reads, int t, const Read &target, 
       }
 
       if (best_overlap.error_rate < MAXIMUM_ERROR_RATE) {
-        output(best_overlap, forward_overlaps);
+        output(best_overlap);
       }
     }
 }

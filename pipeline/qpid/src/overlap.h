@@ -6,15 +6,17 @@
 #include <cassert>
 #include <vector>
 #include <utility>
+#include <algorithm>
 #include "minimizer/minimizer.h"
 #include "../lib/ThreadPool/ThreadPool.h"
 #include "align/align.h"
 #include "read.h"
-using std::vector;
 using std::pair;
+using std::swap;
+using std::vector;
 
 struct offset_t {
-  unsigned int index;
+  int index;
   int lo_offset;
   int hi_offset;
   offset_t() {}
@@ -31,6 +33,7 @@ typedef struct Overlap {
   int b_hang;
   int errors;
   double error_rate;
+  bool normal_overlap;
 
   Overlap() {}
 
@@ -41,8 +44,11 @@ typedef struct Overlap {
   //
   // read a           -ahang     ---------------|--------------->
   // read b      -------------------|-------------->     -bhang
-  Overlap(Read& r1, Read& r2, const double& score, const pair<int, int>& start, const pair<int, int>& end)
-    : r1(r1), r2(r2), score(score) {
+  Overlap(Read& r1, Read& r2, const double& score, const pair<int, int>& start, const pair<int, int>& end,
+    const bool& first_forward, const bool& second_forward)
+    : r1(r1), r2(r2), score(score), normal_overlap(first_forward) {
+
+      assert(second_forward == true);
 
       int len1 = strlen(r1.sequence);
       int len2 = strlen(r2.sequence);
@@ -62,6 +68,14 @@ typedef struct Overlap {
         b_hang = -a_not_matching;
       } else {
         assert(false);
+      }
+
+      // if all the values are calculated for reversed_complement(r1), r2, we store overlap for
+      // r1, reverse_complement(r2)
+      if (!first_forward) {
+        swap(a_hang, b_hang);
+        a_hang *= -1;
+        b_hang *= -1;
       }
 
       int len = abs(end.first - start.first + end.second - start.second) / 2.;
