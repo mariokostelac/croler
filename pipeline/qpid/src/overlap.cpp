@@ -44,8 +44,8 @@ output_funptr output;
 ThreadPool* pool;
 
 void usage(int argc, char **argv) {
-  printf("usage:\n");
-  printf("\t%s [-f <fastq_reads>] [-O <output_overlaps_afg>] [-b <amos_input_bank>] [-B <amos_output_bank>]\n", argv[0]);
+  fprintf(stderr, "usage:\n");
+  fprintf(stderr, "\t%s [-f <fastq_reads>] [-O <output_overlaps_afg>] [-b <amos_input_bank>] [-B <amos_output_bank>]\n", argv[0]);
 }
 
 bool sort_offsets(offset_t a, offset_t b) {
