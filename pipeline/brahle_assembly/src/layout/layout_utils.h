@@ -7,6 +7,9 @@
 #include <layout/contig.h>
 #include <layout/unitigging.h>
 
+#include <memory>
+#include <unordered_map>
+
 namespace layout {
 
   /**
@@ -49,6 +52,7 @@ namespace layout {
    * Calculates lengths of overlaps between read_one and read_two.
    */
   std::pair<int, int> getOverlapLengths(const overlap::ReadSet* read_set, const int read_one, const int read_two, const int hang_one, const int hang_two);
+
 };  // namespace layout
 
 #endif  // LAYOUT_LAYOUT_UTILS_H_

@@ -7,7 +7,9 @@
 #include <utility>
 #include <zlib.h>
 #include <string>
+#include <unordered_map>
 using std::string;
+using std::unordered_map;
 
 #include "layout/layout_utils.h"
 #include "fastq_parser/parser.h"
@@ -17,6 +19,30 @@ using std::string;
 KSEQ_INIT(gzFile, gzread)
 
   namespace layout {
+
+
+    /**
+     * Since ids in ReadSet start with 0 and real ids (reads read from afg file/AMOS bank) can start with arbitrary number,
+     * we have to map real_id -> internal_id (sequence that starts with 0).
+     * That's why introduced this type.
+     */
+    typedef std::unordered_map<int, int> ReadIdMap;
+
+    ReadIdMap _MapIds(overlap::ReadSet* reads) {
+      ReadIdMap mapped;
+
+      int reads_len = reads->size();
+      for (int i = 0; i < reads_len; ++i) {
+        auto& read = (*reads)[i];
+        if (mapped.count(read->orig_id())) {
+          fprintf(stderr, "Read with orig_id '%d' already seen\n", read->orig_id());
+          exit(2);
+        }
+        mapped[read->orig_id()] = read->id();
+      }
+
+      return mapped;
+    }
 
     /**
      * Reads data for one read from the .afg file.
@@ -39,7 +65,7 @@ KSEQ_INIT(gzFile, gzread)
       return reinterpret_cast<uint8_t*>(data);
     }
 
-    overlap::Read* ReadOneReadAfg(FILE *fd) {
+    overlap::Read* ReadOneReadAfg(FILE *fd, int pos) {
       static char buff[1 << 20];
       char *buff_free = buff;
       int id;
@@ -50,7 +76,7 @@ KSEQ_INIT(gzFile, gzread)
         fgets(buff, sizeof(buff), fd);
       } while (buff[0] != '.');
       fscanf(fd, " frg:%*d clr:%*d,%d", &length);
-      return new overlap::Read(data, length, (id-1), id);
+      return new overlap::Read(data, length, pos, id);
     }
 
     overlap::ReadSet* ReadReadsAfg(FILE *fd) {
@@ -60,7 +86,8 @@ KSEQ_INIT(gzFile, gzread)
       char buff[1 << 20];
       while (fscanf(fd, " %s", buff) == 1) {
         if (!strcmp(buff, "{RED")) {
-          read_set->Add(ReadOneReadAfg(fd));
+          read_set->Add(ReadOneReadAfg(fd, i));
+          ++i;
         }
       }
       printf(
@@ -77,11 +104,11 @@ KSEQ_INIT(gzFile, gzread)
       auto read_set = new overlap::ReadSet(10000);
 
       int len = 0;
-      int id = 1;
+      int id = 0;
       while ((len = kseq_read(seq)) > 0) {
         char *read_string = new char[len + 1];
         strcpy(read_string, seq->seq.s);
-        auto read = new overlap::Read(reinterpret_cast<uint8_t*>(read_string), len, (id-1), id);
+        auto read = new overlap::Read(reinterpret_cast<uint8_t*>(read_string), len, id, id);
         read_set->Add(read);
         id++;
       }
@@ -109,7 +136,7 @@ KSEQ_INIT(gzFile, gzread)
 
       AMOS::Read_t read;
       bank.seekg(0, AMOS::BankStream_t::BEGIN);
-      int id = 1;
+      int index = 0;
       while (bank >> read) {
         AMOS::Range_t clear = read.getClearRange();
         string seq = read.getSeqString(clear);
@@ -117,9 +144,9 @@ KSEQ_INIT(gzFile, gzread)
 
         char *read_string = new char[len + 1];
         strcpy(read_string, seq.c_str());
-        auto read = new overlap::Read(reinterpret_cast<uint8_t*>(read_string), len, (id-1), id);
-        read_set->Add(read);
-        id++;
+        auto rd = new overlap::Read(reinterpret_cast<uint8_t*>(read_string), len, index, read.getIID());
+        read_set->Add(rd);
+        index++;
       }
 
       bank.close();
@@ -133,6 +160,9 @@ KSEQ_INIT(gzFile, gzread)
 
     overlap::OverlapSet* ReadOverlapsAfg(overlap::ReadSet* read_set, FILE *fd) {
       clock_t start = clock();
+
+      ReadIdMap internal_id = _MapIds(read_set);
+
       overlap::OverlapSet* overlap_set = new overlap::OverlapSet(10000);
       char type;
       int read_one;
@@ -149,8 +179,20 @@ KSEQ_INIT(gzFile, gzread)
             &score,
             &hang_one,
             &hang_two) == 6) {
-        // --read_one;
-        // --read_two;
+
+        if (!internal_id.count(read_one)) {
+          fprintf(stderr, "Read with orig_id '%d' has not been found\n", read_one);
+          exit(3);
+        }
+
+        if (!internal_id.count(read_two)) {
+          fprintf(stderr, "Read with orig_id '%d' has not been found\n", read_two);
+          exit(3);
+        }
+
+        read_one = internal_id[read_one];
+        read_two = internal_id[read_two];
+
         std::pair<int, int> lenghts = getOverlapLengths(read_set, read_one, read_two, hang_one, hang_two);
         overlap_set->Add(new overlap::Overlap(
               read_one,
@@ -214,7 +256,7 @@ KSEQ_INIT(gzFile, gzread)
 
         bank.close();
       } else {
-        fprintf(stderr, "AMOS Overlap bank %s does not exist.", bank_name);
+        fprintf(stderr, "AMOS Overlap bank %s does not exist.\n", bank_name);
         return overlap_set;
       }
 
