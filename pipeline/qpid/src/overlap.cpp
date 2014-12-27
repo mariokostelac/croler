@@ -346,6 +346,8 @@ int main(int argc, char **argv) {
 
     Minimizer *m = new Minimizer(16, 20);
 
+    fprintf(stderr, "* Maximum error rate: %lf\n", MAXIMUM_ERROR_RATE);
+
     Timer mtimer("calculating minimizers");
     for (int i = 0, len = reads.size(); i < len; ++i) {
       m->calculate_and_store(i, reads[i].sequence);
