@@ -190,6 +190,11 @@ KSEQ_INIT(gzFile, gzread)
           exit(3);
         }
 
+        if (type != 'N' && type != 'I') {
+          fprintf(stderr, "Unkown overlap type '%c'\n", type);
+          exit(3);
+        }
+
         read_one = internal_id[read_one];
         read_two = internal_id[read_two];
 
@@ -199,7 +204,7 @@ KSEQ_INIT(gzFile, gzread)
               read_two,
               lenghts.first,
               lenghts.second,
-              overlap::Overlap::Type::EB,
+              type == 'N' ? overlap::Overlap::Type::EB : overlap::Overlap::Type::EE,
               0));
       }
       printf(
@@ -242,6 +247,8 @@ KSEQ_INIT(gzFile, gzread)
           score = amos_overlap.getScore();
           hang_one = amos_overlap.getAhang();
           hang_two = amos_overlap.getBhang();
+          type = amos_overlap.getAdjacency();
+          assert(type == 'N' || type == 'I');
 
           std::pair<int, int> lenghts = getOverlapLengths(read_set, read_one, read_two, hang_one, hang_two);
 
@@ -250,7 +257,7 @@ KSEQ_INIT(gzFile, gzread)
                 read_two,
                 lenghts.first,
                 lenghts.second,
-                overlap::Overlap::Type::EB,
+                type == 'N' ? overlap::Overlap::Type::EB : overlap::Overlap::Type::EE,
                 score));
         }
 
