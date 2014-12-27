@@ -58,7 +58,15 @@ typedef struct Overlap {
       int a_not_matching = len1 - overlap_len_a;
       int b_not_matching = len2 - overlap_len_b;
 
-      if (end.first == len1) {
+      if (start.first == 0 && end.first == len1) {
+        // first contained
+        a_hang = -start.second;
+        b_hang = len2 - end.second;
+      } else if (start.second == 0 && end.second == len2) {
+        // second contained
+        a_hang = start.first;
+        b_hang = -(len1 - end.first);
+      } else if (end.first == len1) {
         // first case from the comment
         a_hang = a_not_matching;
         b_hang = b_not_matching;
