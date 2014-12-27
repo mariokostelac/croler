@@ -2,7 +2,7 @@
 #include "overlap.h"
 #include "parser/parser.h"
 #include "timer/timer.h"
-#include "memory.cpp"
+#include "memory/memory.cpp"
 #include "align/align.h"
 #include "parsero/parsero.h"
 #include "read.h"
