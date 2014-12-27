@@ -103,7 +103,7 @@ void read_from_bank(vector<Read>& reads, const char *bank_name) {
 }
 
 void output_overlap_file(const Overlap& overlap) {
-    fprintf(OUTPUT_FD, "{OVL adj:%c rds:%d,%d scr:%d ahg:%d bhg:%d }\n",
+    fprintf(OUTPUT_FD, "{OVL\nadj:%c\nrds:%d,%d\nscr:%d\nahg:%d\nbhg:%d\n}\n",
         overlap.normal_overlap ? 'N' : 'I',
         overlap.r1.id,
         overlap.r2.id,
