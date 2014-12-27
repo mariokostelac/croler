@@ -47,7 +47,7 @@ void parse_args(int argc, char **argv) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2 && argc != 3) {
+  if (argc < 2 || argc > 4) {
     usage(argv);
   }
   parse_args(argc, argv);
@@ -57,9 +57,12 @@ int main(int argc, char *argv[]) {
 
   if (argc == 2) {
     snprintf(amos_bank_name, sizeof(amos_bank_name), "%s", argv[1]);
-  } else {
+  } else if (argc == 3) {
     snprintf(reads_file_name, sizeof(reads_file_name), "%s", argv[1]);
     snprintf(overlaps_file_name, sizeof(overlaps_file_name), "%s", argv[2]);
+  } else if (argc == 4) {
+    snprintf(reads_file_name, sizeof(reads_file_name), "%s", argv[2]);
+    snprintf(overlaps_file_name, sizeof(overlaps_file_name), "%s", argv[3]);
   }
 
   FILE *reads_file = nullptr;
