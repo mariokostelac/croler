@@ -19,7 +19,7 @@ class FixedMinQueue {
          while (!q->empty() && q->back() > elem) q->pop_back();
          q->push_back(elem);
          elems->push(elem);
-         if (elems->size() > size) pop();
+         if ((int) elems->size() > size) pop();
      }
 
      T pop() {

@@ -1,7 +1,8 @@
 #include "./overlap.h"
 #include <zlib.h>
 #include <cstdlib>
-#include <cstring> #include <cstdio>
+#include <cstring>
+#include <cstdio>
 #include <vector>
 #include <algorithm>
 #include <string>
