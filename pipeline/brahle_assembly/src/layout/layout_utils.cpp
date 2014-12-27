@@ -313,5 +313,60 @@ KSEQ_INIT(gzFile, gzread)
       return std::make_pair(len_one, len_two);
     }
 
-  };  // namespace layout
+    /**
+     * Writes all usable contigs from contig set to a file with given filename.
+     * If file does not exist, it will be created.
+     * Returns the number of written contigs.
+     */
+    int ContigsToFile(std::shared_ptr<layout::ContigSet> contigs, const char *contigs_filename) {
+      FILE *contigs_file = fopen(contigs_filename, "w");
+      if (contigs_file == nullptr) {
+        return -1;
+      }
 
+      int written = 0;
+      int contigs_size = contigs->size();
+      for (int i = 0; i < contigs_size; ++i) {
+        // skip non-usable contigs
+        if (!((*contigs)[i]->IsUsable())) continue;
+
+        fprintf(contigs_file, "{LAY\n");
+        uint32_t offset = 0;
+        const std::deque< layout::BetterRead* > &reads = (*contigs)[i]->getReads();
+
+        int num_reads = reads.size();
+        for (int j = 0; j < num_reads - 1; ++j) {
+          layout::BetterRead* read1 = reads[j];
+          layout::BetterRead* read2 = reads[j + 1];
+          read1->Finalize();
+          const std::vector< std::pair< uint32_t, layout::BetterOverlap* >> &overlaps = read1->overlaps();
+
+          // find overlap between first and second read
+          for (const auto& overlap: overlaps) {
+            if (overlap.first == read2->id() && overlap.second != nullptr) {
+              fprintf(contigs_file, "{TLE\n");
+              fprintf(contigs_file, "clr:%u,%u\n", 0, read1->read()->size());
+              fprintf(contigs_file, "off:%u\n", offset);
+              fprintf(contigs_file, "src:%d\n}\n", read1->read()->orig_id());
+              offset += read1->read()->size() - overlap.second->Length();
+              break;
+            }
+          }
+        }
+
+        // output last read
+        layout::BetterRead* read = reads[num_reads - 1];
+        fprintf(contigs_file, "{TLE\n");
+        fprintf(contigs_file, "clr:%u,%u\n", 0, read->read()->size());
+        fprintf(contigs_file, "off:%u\n", offset);
+        fprintf(contigs_file, "src:%d\n}\n", read->read()->orig_id());
+
+        fprintf(contigs_file, "}\n");
+        written++;
+      }
+
+      fclose(contigs_file);
+      return written;
+    }
+
+  };  // namespace layout

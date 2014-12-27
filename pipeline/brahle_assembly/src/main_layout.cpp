@@ -167,53 +167,9 @@ int main(int argc, char *argv[]) {
   n50_value = layout::n50(u->contigs());
   fprintf(stderr, "After trimming n50 = %d\n", n50_value);
 
-  // output afg
-  // @mculinovic
-  FILE *afg_file = fopen("layout.afg", "w");
-
   std::shared_ptr<layout::ContigSet> contigs = u->contigs();
-  int contigs_size = contigs->size();
-  for (int i = 0; i < contigs_size; ++i) {
-      // skip non-usable contigs
-      if (!((*contigs)[i]->IsUsable())) continue;
-
-      fprintf(afg_file, "{LAY\n");
-      uint32_t offset = 0;
-      const std::deque< layout::BetterRead* > &reads = (*contigs)[i]->getReads();
-
-      int num_reads = reads.size();
-      for (int j = 0; j < num_reads - 1; ++j) {
-          layout::BetterRead* read1 = reads[j];
-          layout::BetterRead* read2 = reads[j + 1];
-          read1->Finalize();
-          const std::vector< std::pair< uint32_t, layout::BetterOverlap* >> &overlaps = read1->overlaps();
-
-          // find overlap between first and second read
-          for (const auto& overlap: overlaps) {
-              if (overlap.first == read2->id() && overlap.second != nullptr) {
-                  fprintf(afg_file, "{TLE\n");
-                  fprintf(afg_file, "clr:%u,%u\n", 0, read1->read()->size());
-                  fprintf(afg_file, "off:%u\n", offset);
-                  fprintf(afg_file, "src:%d\n}\n", read1->read()->id()); 
-                  offset += read1->read()->size() - overlap.second->Length();
-                  break;
-              }
-          }
-      }
-
-      // output last read
-      layout::BetterRead* read = reads[num_reads - 1];
-      fprintf(afg_file, "{TLE\n");
-      fprintf(afg_file, "clr:%u,%u\n", 0, read->read()->size());
-      fprintf(afg_file, "off:%u\n", offset);
-      fprintf(afg_file, "src:%d\n}\n", read->read()->id());
-
-      fprintf(afg_file, "}\n");
-  }
-
-  if (afg_file != nullptr) {
-    fclose(afg_file);
-  }
+  int written = ContigsToFile(contigs, "layout.afg");
+  fprintf(stderr, "Written %d contigs to a file 'layout.afg'\n", written);
 
   if (overlaps_file != nullptr) {
     fclose(overlaps_file);
