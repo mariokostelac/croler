@@ -1,4 +1,4 @@
-default: amos prepare run
+default: amos prepare main_layout
 
 INCLUDE_SRC=./src
 INCLUDE_VENDOR=./vendor
