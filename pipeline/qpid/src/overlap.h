@@ -7,10 +7,10 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
-#include "minimizer/minimizer.h"
-#include "../lib/ThreadPool/ThreadPool.h"
 #include "align/align.h"
+#include "minimizer/minimizer.h"
 #include "read.h"
+#include "thread_pool/ThreadPool.h"
 using std::pair;
 using std::swap;
 using std::vector;

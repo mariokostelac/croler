@@ -1,0 +1,3 @@
+[submodule "vendor/thread_pool"]
+	path = vendor/thread_pool
+	url = https://github.com/progschj/ThreadPool.git
