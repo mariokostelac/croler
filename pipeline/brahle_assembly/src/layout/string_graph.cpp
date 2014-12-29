@@ -272,6 +272,24 @@ void Graph::removeBubbles() {
       }
 
       BubbleWalk& walk = bubble_walks[selected_walk];
+
+      // ubaciti šošića
+
+      std::string selected_sequence = walk.getSequence();
+      for (size_t j = 0; j < bubble_walks.size(); ++j) {
+        if (j == selected_walk) continue;
+        BubbleWalk& curr_walk = bubble_walks[j];
+        auto &walk_edges = curr_walk.Edges();
+        for (size_t k = 0; k < walk_edges.size() - 1; ++k) {
+          uint32_t id = walk_edges[k]->B()->id();
+          if (!walk.containsRead(id)) {
+            getVertex(id)->mark();
+            getVertex(id)->markEdges();
+          }
+        }
+      }
+
+      // count bubbles
     }
   }
 }

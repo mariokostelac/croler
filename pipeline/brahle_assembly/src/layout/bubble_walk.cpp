@@ -61,4 +61,8 @@ std::string BubbleWalk::getSequence() {
     return sequence;
 }
 
+bool BubbleWalk::containsRead(uint32_t id) {
+    return read_ids->count(id) > 0;
+}
+
 };  // namespace layout

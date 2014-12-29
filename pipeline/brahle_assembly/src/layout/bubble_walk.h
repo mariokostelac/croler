@@ -22,6 +22,7 @@ class BubbleWalk {
         void addEdge(std::shared_ptr<Edge> edge);
         std::vector<std::shared_ptr< Edge >>& Edges() { return edges; }
         std::string getSequence();
+        bool containsRead(uint32_t id);
     private:
         std::shared_ptr< Vertex > first;
         std::vector<std::shared_ptr< Edge >> edges;

@@ -116,8 +116,12 @@ void Vertex::eraseEdgeDir2(std::shared_ptr< Edge > edge) {
 }
 
 void Vertex::markEdges() {
-    if (edges_B_.size() == 0) {
-      for (auto const& edge: edges_E_) {
+    markEdgesE();
+    markEdgesB();
+}
+
+void Vertex::markEdgesE() {
+    for (auto const& edge: edges_E_) {
         // fprintf(stderr, "Prvi: %d %d\n", edge->A()->id(), edge->B()->id());
         edge->mark();
         // find and mark overlap pair edge
@@ -141,10 +145,13 @@ void Vertex::markEdges() {
                 }
             }
         }
-      }
-      edges_E_.clear();
-    } else {
-      for (auto const&edge: edges_B_) {
+    }
+    edges_E_.clear();
+}
+
+
+void Vertex::markEdgesB() {
+    for (auto const&edge: edges_B_) {
         // fprintf(stderr, "Prvi: %d %d\n", edge->A()->id(), edge->B()->id());
         edge->mark();
          // find and mark overlap pair edge
@@ -168,9 +175,8 @@ void Vertex::markEdges() {
                 }
             }
         }
-      }
-      edges_B_.clear();
     }
+    edges_B_.clear();
 }
 
 std::vector<std::shared_ptr< Edge >> Vertex::getEdges() {
