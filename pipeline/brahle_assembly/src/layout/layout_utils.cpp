@@ -402,7 +402,7 @@ KSEQ_INIT(gzFile, gzread)
 
     std::string dot_graph(const BetterReadSet* reads, const BetterOverlapSet* overlaps) {
       stringstream graph;
-      graph << "digraph overlaps {" << std::endl;
+      graph << "digraph overlaps {\n";
       int overlaps_size = overlaps->size();
       for (int i = 0; i < overlaps_size; ++i) {
         const auto& overlap = (*overlaps)[i];
@@ -411,7 +411,7 @@ KSEQ_INIT(gzFile, gzread)
         if (overlap->GoesFrom(overlap->overlap()->read_one)) {
           graph << read1 << " -> " << read2;
         } else {
-          graph << read2 << " -> " << read1 << ";" << std::endl;
+          graph << read2 << " -> " << read1;
         }
         if (overlap->overlap()->type == overlap::Overlap::Type::EB) {
           graph << " [color=green] ";
@@ -420,7 +420,7 @@ KSEQ_INIT(gzFile, gzread)
         }
         graph << ";\n";
       }
-      graph << "}" << std::endl;
+      graph << "}\n";
       return graph.str();
     }
   };  // namespace layout
