@@ -175,6 +175,16 @@ class Vertex {
    * Read coverage
    */
    double coverage() { return ((overlap::Read *) data_)->coverage(); }
+
+   /**
+    * Mark edges with direction B for removal
+    */
+   void markEdgesB();
+
+   /**
+    * Mark edges with direction E for removal
+    */
+   void markEdgesE();
 };
 
 };  // namespace layout
