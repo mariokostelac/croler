@@ -18,6 +18,7 @@ Edge::Edge(
     const Graph& graph)
     : id_(id),
       graph_(graph),
+      marked_(false),
       A_(graph.getVertex(read_id)),
       B_(graph.getVertex(overlap->Other(read_id))),
       label_(
