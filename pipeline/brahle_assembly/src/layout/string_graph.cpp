@@ -212,8 +212,8 @@ void Graph::removeBubbles() {
       uint32_t selected_coverage = 0;
       bool is_degenerate = false;
 
-      // uint32_t overlap_x = std::numeric_limits<uint32_t>::max();
-      // uint32_t overlap_y = std::numeric_limits<uint32_t>::max();
+      uint32_t overlap_start = std::numeric_limits<uint32_t>::max();
+      uint32_t overlap_end = std::numeric_limits<uint32_t>::max();
 
       size_t i = 0;
       for (auto bubble_walk: bubble_walks) {
@@ -234,8 +234,44 @@ void Graph::removeBubbles() {
 
         std::shared_ptr< Edge > first = bubble_walk.Edges().front();
         std::shared_ptr< Edge > last = bubble_walk.Edges().back();
+
+        if (first->label().overlap()->Length() < overlap_start) {
+          overlap_start = first->label().overlap()->Length();
+        }
+        if (last->label().overlap()->Length() < overlap_end) {
+          overlap_end = last->label().overlap()->Length();
+        }
+
         ++i; 
       }
+
+      if (is_degenerate)
+        continue;
+
+      std::vector< std::string > bubble_sequences;
+      for (auto &bubble_walk: bubble_walks) {
+        std::shared_ptr< Vertex > start = bubble_walk.Edges().front()->A();
+        std::shared_ptr< Vertex > end = bubble_walk.Edges().back()->B();
+
+        std::string sequence = bubble_walk.getSequence();
+        std::string matching_sequence;
+        uint32_t start_idx = 0;
+        uint32_t end_idx = 0;
+        if (dir == 0) {
+          start_idx = end->data()->size() - overlap_end;
+          end_idx = sequence.size() - (start->data()->size() - overlap_start);
+        } else {
+          start_idx = start->data()->size() - overlap_start;
+          end_idx = sequence.size() - (end->data()->size() - overlap_end);
+        }
+
+        if (end_idx > start_idx) {
+          matching_sequence = sequence.substr(start_idx, end_idx - start_idx);
+        }
+        bubble_sequences.emplace_back(matching_sequence);
+      }
+
+      BubbleWalk& walk = bubble_walks[selected_walk];
     }
   }
 }
