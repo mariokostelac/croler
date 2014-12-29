@@ -205,7 +205,37 @@ void Graph::removeBubbles() {
 
       std::vector<BubbleWalk> bubble_walks;
       getBubbleWalks(vertex, dir, bubble_walks);
-      // fprintf(stderr, "walk: %d\n", bubble_walks.size());
+
+      if (bubble_walks.size() == 0) continue;
+
+      uint32_t selected_walk = -1;
+      uint32_t selected_coverage = 0;
+      bool is_degenerate = false;
+
+      // uint32_t overlap_x = std::numeric_limits<uint32_t>::max();
+      // uint32_t overlap_y = std::numeric_limits<uint32_t>::max();
+
+      size_t i = 0;
+      for (auto bubble_walk: bubble_walks) {
+        if (bubble_walk.Edges().size() <= 1) {
+          is_degenerate = true;
+          break;
+        }
+
+        uint32_t curr_coverage = 0;
+        for (auto const& walk_edge: bubble_walk.Edges()) {
+          curr_coverage += walk_edge->B()->coverage();
+        }
+
+        if (curr_coverage > selected_coverage || selected_coverage == 0) {
+          selected_walk = i;
+          selected_coverage = curr_coverage;
+        }
+
+        std::shared_ptr< Edge > first = bubble_walk.Edges().front();
+        std::shared_ptr< Edge > last = bubble_walk.Edges().back();
+        ++i; 
+      }
     }
   }
 }
@@ -223,7 +253,7 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
   opened_queue.emplace_back(root);
   ++reads_cnt;
   while (!opened_queue.empty()) {
-    if (reads_cnt > MAX_READS) {
+    if (reads_cnt > MAX_NODES) {
       closed_queue.insert(closed_queue.end(),
                           opened_queue.begin(),
                           opened_queue.end());
