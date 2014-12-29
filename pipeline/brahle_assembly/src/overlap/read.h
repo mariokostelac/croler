@@ -35,13 +35,20 @@ public:
 
   uint32_t id() const;
   uint32_t orig_id() const;
+  // @mculinovic
   void usable(bool value) { usable_ = value; }
-  bool isUsable() {return usable_; }
+  bool isUsable() { return usable_; }
+  void addCoverage(double value) { coverage_ += value; }
+  double coverage() { return coverage_; }
 
 private:
   const uint32_t id_;
   const uint32_t orig_id_;
+  // @mculinovic - flag if read is usable for making contigs
   bool usable_;
+  // @mculinovic - measure for reads merged into this one
+  double coverage_;
+
 };
 
 const uint8_t* ReverseComplement(const uint8_t* data, size_t size);

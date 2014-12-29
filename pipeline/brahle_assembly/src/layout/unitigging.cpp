@@ -62,8 +62,10 @@ void Unitigging::removeContainmentEdges() {
     overlap::Overlap* overlap = better_overlap->overlap();
     if (better_overlap->one()->size() == overlap->len_one) {
       erased[overlap->read_one] = true;
+      (*reads_)[overlap->read_two]->addCoverage(1);
     } else if (better_overlap->two()->size() == overlap->len_two) {
       erased[overlap->read_two] = true;
+      (*reads_)[overlap->read_one]->addCoverage(1);
     }
   }
   no_contains_ = BetterOverlapSetPtr(new BetterOverlapSet(reads_));
@@ -148,6 +150,12 @@ inline void Unitigging::removeTransitiveEdges() {
       }
       if (it1->first == it2->first) {
         if (isTransitive(better_overlap, it1->second, it2->second)) {
+          (*reads_)[overlap->read_one]->addCoverage(
+            static_cast<double> (better_overlap->Length()) /
+            (*reads_)[overlap->read_one]->size());
+          (*reads_)[it1->first]->addCoverage(
+            static_cast<double> (better_overlap->Length()) /
+            (*reads_)[it1->first]->size());
           erased.emplace_back(i);
           done = true;
         }

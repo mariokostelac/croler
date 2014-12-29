@@ -170,6 +170,11 @@ class Vertex {
    * Erase given edge in edges_E 
    */
   void eraseEdgeE(std::shared_ptr< Edge > pair_edge);
+
+  /**
+   * Read coverage
+   */
+   double coverage() { return ((overlap::Read *) data_)->coverage(); }
 };
 
 };  // namespace layout
