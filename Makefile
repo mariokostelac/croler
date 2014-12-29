@@ -13,7 +13,7 @@ link_bin:
 	ln -s ../pipeline/msa/bin/msa bin/consensus
 
 clean:
-	@test -d bin && rm -r bin
+	@if [ -d bin ]; then rm -r bin; fi;
 
 $(SUBDIRS):
 	$(MAKE) -C $@
