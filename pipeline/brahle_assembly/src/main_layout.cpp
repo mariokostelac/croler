@@ -15,6 +15,11 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include <string>
+#include <iostream>
+#include <fstream>
+using std::string;
+using std::cout;
 
 char amos_bank_name[1024] = {0};
 
@@ -145,6 +150,24 @@ int main(int argc, char *argv[]) {
   int n50_value = layout::n50(u->contigs());
   fprintf(stderr, "n50 = %d\n", n50_value);
 
+  // create initial dotgraph
+  {
+    std::ofstream initial_graph_file;
+    string initial_graph = layout::dot_graph(reads.get(), overlaps.get());
+    initial_graph_file.open("all_overlaps.dot", std::fstream::out);
+    initial_graph_file << initial_graph;
+    initial_graph_file.close();
+  }
+
+  // create dotgraph after removing transitive edges and containment reads
+  {
+    std::ofstream no_transitives_graph;
+    no_transitives_graph.open("no_transitives.dot", std::fstream::out);
+    layout::BetterReadSet brs(reads.get(), false);
+    no_transitives_graph << layout::dot_graph(&brs, u->noTransitives().get());
+    no_transitives_graph.close();
+  }
+
   start = clock();
   layout::Graph g = layout::Graph::create(u->readSet(), u->noTransitives());
   fprintf(
@@ -169,6 +192,15 @@ int main(int argc, char *argv[]) {
 
   n50_value = layout::n50(u->contigs());
   fprintf(stderr, "After trimming n50 = %d\n", n50_value);
+
+  // create dotgraph after trimming
+  {
+    std::ofstream after_trimming_graph;
+    after_trimming_graph.open("after_trimming.dot", std::fstream::out);
+    layout::BetterReadSet brs(reads.get(), false);
+    after_trimming_graph << layout::dot_graph(&brs, g.extractOverlaps().get());
+    after_trimming_graph.close();
+  }
 
   std::shared_ptr<layout::ContigSet> contigs = u->contigs();
   int written = ContigsToFile(contigs, "layout.afg");

@@ -36,7 +36,8 @@ Read::Read(const uint8_t* data, size_t size, uint32_t id, uint32_t orig_id)
     : String(data, size),
       id_(id),
       orig_id_(orig_id),
-      usable_(true) {
+      usable_(true),
+      coverage_(1) {
 }
 
 Read::~Read() {

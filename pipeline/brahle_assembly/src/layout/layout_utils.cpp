@@ -7,7 +7,9 @@
 #include <utility>
 #include <zlib.h>
 #include <string>
+#include <sstream>
 #include <unordered_map>
+using std::stringstream;
 using std::string;
 using std::unordered_map;
 
@@ -369,4 +371,29 @@ KSEQ_INIT(gzFile, gzread)
       return written;
     }
 
+    std::string dot_graph(overlap::ReadSet* reads, overlap::OverlapSet* overlaps) {
+      BetterReadSet brs(reads, false);
+      BetterOverlapSet bos(reads, overlaps);
+      return dot_graph(&brs, &bos);
+    }
+
+    std::string dot_graph(const BetterReadSet* reads, const BetterOverlapSet* overlaps) {
+      stringstream graph;
+      graph << "digraph overlaps {" << std::endl;
+      int overlaps_size = overlaps->size();
+      for (int i = 0; i < overlaps_size; ++i) {
+        const auto& overlap = (*overlaps)[i];
+        int read1 = (*reads)[overlap->overlap()->read_one]->read()->orig_id();
+        int read2 = (*reads)[overlap->overlap()->read_two]->read()->orig_id();
+        graph << read1 << " -> " << read2 << " ";
+        if (overlap->overlap()->type == overlap::Overlap::Type::EB) {
+          graph << "[color=blue]";
+        } else {
+          graph << "[color=red]";
+        }
+        graph << ";" << std::endl;
+      }
+      graph << "}" << std::endl;
+      return graph.str();
+    }
   };  // namespace layout
