@@ -408,11 +408,17 @@ KSEQ_INIT(gzFile, gzread)
         const auto& overlap = (*overlaps)[i];
         int read1 = (*reads)[overlap->overlap()->read_one]->read()->orig_id();
         int read2 = (*reads)[overlap->overlap()->read_two]->read()->orig_id();
-        if (overlap->Suf(overlap->overlap()->read_one)) {
-          graph << read1 << " -> " << read2 << ";" << std::endl;
+        if (overlap->GoesFrom(overlap->overlap()->read_one)) {
+          graph << read1 << " -> " << read2;
         } else {
           graph << read2 << " -> " << read1 << ";" << std::endl;
         }
+        if (overlap->overlap()->type == overlap::Overlap::Type::EB) {
+          graph << " [color=green] ";
+        } else {
+          graph << " [color=pink] ";
+        }
+        graph << ";\n";
       }
       graph << "}" << std::endl;
       return graph.str();
