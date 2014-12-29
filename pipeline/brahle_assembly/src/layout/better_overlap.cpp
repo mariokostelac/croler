@@ -66,6 +66,18 @@ const uint32_t BetterOverlap::Suf(uint32_t read) const {
     return overlap_->a_hang >= 0;
   }
 
+  return (overlap_->b_hang < 0) ^ (overlap_->type == overlap::Overlap::Type::EE);
+}
+
+const uint32_t BetterOverlap::GoesFrom(uint32_t read) const {
+  assert(overlap_ != nullptr);
+  assert(read == overlap_->read_one || read == overlap_->read_two);
+  assert(overlap_->hangs_set);
+
+  if (read == overlap_->read_one) {
+    return overlap_->a_hang >= 0;
+  }
+
   return overlap_->b_hang < 0;
 }
 
