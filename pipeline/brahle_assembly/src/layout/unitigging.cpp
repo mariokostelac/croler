@@ -77,6 +77,14 @@ void Unitigging::removeContainmentEdges() {
     no_contains_->Add(new BetterOverlap(better_overlap));
   }
   int erased_count = std::count(erased, erased + reads_->size(), true);
+
+  // make sure that one read gives suffix and the second gives prefix
+  for (size_t i = 0; i < no_contains_->size(); ++i) {
+    const auto& overlap = (*no_contains_)[i];
+    const auto& read_overlap = overlap->overlap();
+    assert(overlap->Suf(overlap->overlap()->read_one) != overlap->Suf(overlap->overlap()->read_two));
+  }
+
   fprintf(
       stderr,
       "Contained reads = %d (%.2lf%%)\n",

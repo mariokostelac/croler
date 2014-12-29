@@ -206,6 +206,8 @@ KSEQ_INIT(gzFile, gzread)
               read_two,
               lenghts.first,
               lenghts.second,
+              hang_one,
+              hang_two,
               type == 'N' ? overlap::Overlap::Type::EB : overlap::Overlap::Type::EE,
               0));
       }
@@ -259,6 +261,8 @@ KSEQ_INIT(gzFile, gzread)
                 read_two,
                 lenghts.first,
                 lenghts.second,
+                hang_one,
+                hang_two,
                 type == 'N' ? overlap::Overlap::Type::EB : overlap::Overlap::Type::EE,
                 score));
         }
@@ -296,22 +300,41 @@ KSEQ_INIT(gzFile, gzread)
     /**
      * Calculates lengths of overlaps between read_one and read_two.
      */
-    std::pair<int, int> getOverlapLengths(const overlap::ReadSet* read_set, const int read_one, const int read_two, const int hang_one, const int hang_two) {
+    std::pair<int, int> getOverlapLengths(const overlap::ReadSet* read_set, const int a, const int b, const int a_hang, const int b_hang) {
       int len_one, len_two;
-      if (hang_one >= 0) {
-        len_one = (*read_set)[read_one]->size() - abs(hang_one);
+      int a_size = (*read_set)[a]->size();
+      int b_size = (*read_set)[b]->size();
+      //
+      // -------|--------------> b_hang
+      // a_hang ---------------|------>
+      //
+      // -a_hang -------------|------->
+      // --------|------------> -b_hang
+      //
+      // -------|-------------|------->
+      // a_hang --------------> -b_hang
+      //
+      // -a_hang --------------> b_hang
+      // --------|-------------|------>
+      //
+      if (a_hang >= 0 && b_hang >= 0) {
+        len_one = a_size - a_hang;
+        len_two = b_size - b_hang;
+      } else if (a_hang <= 0 && b_hang <= 0) {
+        len_one = a_size + b_hang;
+        len_two = b_size + a_hang;
+      } else if (a_hang >= 0 && b_hang <= 0) {
+        len_one = a_size + b_hang - a_hang;
+        len_two = b_size;
+      } else if (a_hang <= 0 && b_hang >= 0) {
+        len_one = a_size;
+        len_two = b_size + a_hang - b_hang;
       } else {
-        len_one = std::min(
-            (*read_set)[read_one]->size(),
-            (*read_set)[read_two]->size() - abs(hang_one));
+        // case not covered
+        assert(false);
       }
-      if (hang_two >= 0) {
-        len_two = (*read_set)[read_two]->size() - abs(hang_two);
-      } else {
-        len_two = std::min(
-            (*read_set)[read_two]->size(),
-            (*read_set)[read_one]->size() - abs(hang_two));
-      }
+
+      assert(len_one > 0 && len_two > 0);
       return std::make_pair(len_one, len_two);
     }
 

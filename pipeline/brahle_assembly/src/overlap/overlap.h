@@ -17,6 +17,8 @@ struct Overlap {
 
   Overlap(uint32_t r1, uint32_t r2, uint32_t l1, uint32_t l2, Type t, int32_t s);
 
+  Overlap(uint32_t r1, uint32_t r2, uint32_t l1, uint32_t l2, int32_t a_hang, int32_t b_hang, Type t, int32_t s);
+
   bool operator<(const Overlap& rhs) const;
 
   uint32_t read_one;
@@ -25,6 +27,9 @@ struct Overlap {
   uint32_t len_two;
   Type type;
   int32_t score;
+  int32_t a_hang;
+  int32_t b_hang;
+  bool hangs_set;
 };
 
 class OverlapCmp : public std::binary_function<Overlap*, Overlap*, bool> {

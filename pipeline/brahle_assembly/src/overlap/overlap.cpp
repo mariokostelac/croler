@@ -5,7 +5,6 @@
 
 namespace overlap {
 
-
 Overlap::Overlap(
     uint32_t r1,
     uint32_t r2,
@@ -18,7 +17,27 @@ Overlap::Overlap(
       len_one(l1),
       len_two(l2),
       type(t),
-      score(s) {}
+      score(s),
+      hangs_set(false) {}
+
+Overlap::Overlap(
+    uint32_t r1,
+    uint32_t r2,
+    uint32_t l1,
+    uint32_t l2,
+    int32_t a_hang,
+    int32_t b_hang,
+    Type t,
+    int32_t s)
+    : read_one(r1),
+      read_two(r2),
+      len_one(l1),
+      len_two(l2),
+      a_hang(a_hang),
+      b_hang(b_hang),
+      type(t),
+      score(s),
+      hangs_set(true) {}
 
 bool Overlap::operator<(const Overlap& rhs) const {
   if (read_one != rhs.read_one) return read_one < rhs.read_one;
