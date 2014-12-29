@@ -54,6 +54,10 @@ namespace layout {
   std::pair<int, int> getOverlapLengths(const overlap::ReadSet* read_set, const int read_one, const int read_two, const int hang_one, const int hang_two);
 
   int ContigsToFile(std::shared_ptr<layout::ContigSet> contigs, const char *contigs_filename);
+
+  std::string dot_graph(overlap::ReadSet* reads, overlap::OverlapSet* overlaps);
+
+  std::string dot_graph(const BetterReadSet* reads, const BetterOverlapSet* overlaps);
 };  // namespace layout
 
 #endif  // LAYOUT_LAYOUT_UTILS_H_
