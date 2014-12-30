@@ -185,10 +185,14 @@ Unitigging::BetterOverlapSetPtr Graph::extractOverlaps() {
 
 void Graph::removeBubbles() {
   for (auto const& vertex: vertices_) {
+    // puts("remove bubbles"); 
+    // std::shared_ptr< Vertex > vertex = getVertex(269 - 159);
+    // fprintf(stderr, "Edges of vertex: %d %d\n", vertex->count_edges_B(), vertex->count_edges_E());
     // skip vertices already marked for removal
-    if (vertex->isMarked()) continue;
+    if (vertex->isMarked()) continue; // continue;
 
-    // check overlaps where read is prefix (dir = 0) or suffix (dir = 1)
+    // check overlaps where read part of overlap
+    // is prefix (dir = 0) or suffix (dir = 1)
     for (size_t dir = 0; dir < 2; ++dir) {
       const std::vector<std::shared_ptr< Edge >> &edges = (dir == 0) ?
                     vertex->getEdgesB() : vertex->getEdgesE();
@@ -207,7 +211,8 @@ void Graph::removeBubbles() {
       std::vector<BubbleWalk> bubble_walks;
       getBubbleWalks(vertex, dir, bubble_walks);
 
-      if (bubble_walks.size() == 0) continue;
+      if (bubble_walks.size() == 0) continue; // continue;
+      else fprintf(stderr, "Bubble walks: %d\n", bubble_walks.size());
 
       uint32_t selected_walk = -1;
       uint32_t selected_coverage = 0;
@@ -219,6 +224,7 @@ void Graph::removeBubbles() {
       size_t i = 0;
       for (auto bubble_walk: bubble_walks) {
         if (bubble_walk.Edges().size() <= 1) {
+          puts("degeneriran sam");
           is_degenerate = true;
           break;
         }
@@ -232,6 +238,7 @@ void Graph::removeBubbles() {
           selected_walk = i;
           selected_coverage = curr_coverage;
         }
+        fprintf(stderr, "Coverage: %d\n", curr_coverage);
 
         std::shared_ptr< Edge > first = bubble_walk.Edges().front();
         std::shared_ptr< Edge > last = bubble_walk.Edges().back();
@@ -271,6 +278,7 @@ void Graph::removeBubbles() {
         }
         bubble_sequences.emplace_back(matching_sequence);
       }
+      puts("Izgradene su sekvence");
 
       BubbleWalk& walk = bubble_walks[selected_walk];
 
@@ -281,9 +289,12 @@ void Graph::removeBubbles() {
         if (j == selected_walk) continue;
         BubbleWalk& curr_walk = bubble_walks[j];
         auto &walk_edges = curr_walk.Edges();
+        // puts("Novi walk");
         for (size_t k = 0; k < walk_edges.size() - 1; ++k) {
           uint32_t id = walk_edges[k]->B()->id();
+          // fprintf(stderr, "Brid: %d %d\n", walk_edges[k]->A()->id() + 159, walk_edges[k]->B()->id() + 159);
           if (!walk.containsRead(id)) {
+            fprintf(stderr, "Mark vertex id: %d\n", id);
             getVertex(id)->mark();
             getVertex(id)->markEdges();
           }
@@ -299,6 +310,7 @@ void Graph::removeBubbles() {
 void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
                             size_t dir,
                             std::vector<BubbleWalk> &bubble_walks) {
+  puts("Get Bubble Walks");
   uint32_t reads_cnt = 0;
   uint64_t distance = 0;
 
@@ -332,7 +344,8 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
     opened_queue = expand_queue;
     std::shared_ptr<Vertex> end_vertex;
     if (bubbleFound(root, &end_vertex)) {
-      // puts("Bubble found");
+      puts("Bubble found");
+      fprintf(stderr, "End vertex id: %d\n", end_vertex->id() + 159);
       generateBubbleWalks(vertex_root, end_vertex, bubble_walks);
       break;
     }
@@ -345,14 +358,16 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
     return;
   }
 
+  puts("Check for orientation");
+
   // check that last vertex has same orientation for all walks
   std::shared_ptr<Edge> last_edge = bubble_walks.front().Edges().back();
-  uint32_t last_direction = !last_edge->label().overlap()->Suf(last_edge->B()->id());
+  uint32_t last_direction = last_edge->label().overlap()->Suf(last_edge->B()->id());
 
   std::set<uint32_t> vertices_ids;
   for (size_t i = 0; i < bubble_walks.size(); ++i) {
     last_edge = bubble_walks[i].Edges().back();
-    if (!last_edge->label().overlap()->Suf(last_edge->B()->id()) != last_direction) {
+    if (last_edge->label().overlap()->Suf(last_edge->B()->id()) != last_direction) {
       bubble_walks.clear();
       return;
     }
@@ -379,8 +394,10 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
     }
 
     for (auto const& edge: v_edges) {
+      // fprintf(stderr, "Edge: %d %d\n", edge->A()->id() + 159, edge->B()->id() + 159);
       if (vertices_ids.find(edge->B()->id()) == vertices_ids.end()) {
         bubble_walks.clear();
+        puts("Nisu svi cvorovi u skupu");
         return;
       }
     }

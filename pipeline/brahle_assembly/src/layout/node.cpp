@@ -31,12 +31,14 @@ Node::~Node() {
 uint32_t Node::expand(std::deque<Node*>& expand_queue) {
     assert(num_children_ == 0);
 
+    // fprintf(stderr, "Id: %d, Dir: %d\n", vertex_->id() + 159, direction_);
     std::vector<std::shared_ptr< Edge >> edges = vertex_->getEdges(direction_);
     for (auto const &edge: edges) {
-        uint32_t child_expand_dir = !direction_;
+        uint32_t child_expand_dir = direction_;  // !direction_;
         Node *child = new Node(edge->B(), child_expand_dir, this,
                               edge, edge->label().get().length());
         expand_queue.emplace_back(child);
+        // fprintf(stderr, "\tchild id: %d, dir: %d\n", (child->vertex()->id() + 159), child_expand_dir);
         ++num_children_;
     }
     return edges.size();
