@@ -63,9 +63,11 @@ void Unitigging::removeContainmentEdges() {
     if (better_overlap->one()->size() == overlap->len_one) {
       erased[overlap->read_one] = true;
       (*reads_)[overlap->read_two]->addCoverage(1);
+      fprintf(stderr, "Removing read %d as containment read\n", (*reads_)[overlap->read_one]->orig_id());
     } else if (better_overlap->two()->size() == overlap->len_two) {
       erased[overlap->read_two] = true;
       (*reads_)[overlap->read_one]->addCoverage(1);
+      fprintf(stderr, "Removing read %d as containment read\n", (*reads_)[overlap->read_two]->orig_id());
     }
   }
   no_contains_ = BetterOverlapSetPtr(new BetterOverlapSet(reads_));
@@ -160,6 +162,19 @@ inline void Unitigging::removeTransitiveEdges() {
             static_cast<double> (better_overlap->Length()) /
             (*reads_)[it1->first]->size());
           erased.emplace_back(i);
+
+          const auto& o = better_overlap->overlap();
+          const auto& o1 = it1->second->overlap();
+          const auto& o2 = it2->second->overlap();
+          fprintf(stderr,
+              "Removing overlap (%d, %d) as transitive of (%d, %d), (%d, %d)\n",
+              (*reads_)[o->read_one]->orig_id(),
+              (*reads_)[o->read_two]->orig_id(),
+              (*reads_)[o1->read_one]->orig_id(),
+              (*reads_)[o1->read_two]->orig_id(),
+              (*reads_)[o2->read_one]->orig_id(),
+              (*reads_)[o2->read_two]->orig_id()
+          );
           done = true;
         }
         ++it1;
@@ -243,7 +258,7 @@ void Unitigging::makeContigs(BetterOverlapSetPtr& c_overlaps, overlap::ReadSet*&
         degrees[read_two][better_overlap->GoesFrom(read_two)] == 1) {
       auto contig_one = uf.find(read_one);
       auto contig_two = uf.find(read_two);
-      //printf("Spajam %d i %d\n", contig_one, contig_two);
+      fprintf(stderr, "Joining contigs %d and %d\n", contig_one, contig_two);
       auto larger = uf.join(read_one, read_two);
       if (larger == contig_one) {
         (*contigs_)[contig_one]->Join(better_overlap, (*contigs_)[contig_two]);
