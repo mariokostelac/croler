@@ -14,6 +14,9 @@ link_bin:
 
 clean:
 	@if [ -d bin ]; then rm -r bin; fi;
+	@make -C pipeline/qpid clean
+	@make -C pipeline/brahle_assembly clean
+	@make -C pipeline/msa clean
 
 $(SUBDIRS):
 	$(MAKE) -C $@
