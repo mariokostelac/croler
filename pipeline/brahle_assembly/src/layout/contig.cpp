@@ -19,24 +19,23 @@ void Contig::Join(BetterOverlapPtr better_overlap, Contig* contig) {
   assert(contig->alive_);
   if (IsLeftOverlap(better_overlap)) {
     if (contig->IsLeftOverlap(better_overlap)) {
-      reads_.insert(
-          reads_.begin(),
-          contig->reads_.rbegin(),
-          contig->reads_.rend());
+      reads_.insert(reads_.begin(), contig->reads_.rbegin(), contig->reads_.rend());
+      overlaps_.push_front(better_overlap);
+      overlaps_.insert(overlaps_.begin(), contig->overlaps_.rbegin(), contig->overlaps_.rend());
     } else {
-      reads_.insert(
-          reads_.begin(),
-          contig->reads_.begin(),
-          contig->reads_.end());
+      reads_.insert(reads_.begin(), contig->reads_.begin(), contig->reads_.end());
+      overlaps_.push_front(better_overlap);
+      overlaps_.insert(overlaps_.begin(), contig->overlaps_.begin(), contig->overlaps_.end());
     }
   } else {
     if (contig->IsLeftOverlap(better_overlap)) {
       reads_.insert(reads_.end(), contig->reads_.begin(), contig->reads_.end());
+      overlaps_.push_back(better_overlap);
+      overlaps_.insert(overlaps_.end(), contig->overlaps_.begin(), contig->overlaps_.end());
     } else {
-      reads_.insert(
-          reads_.end(),
-          contig->reads_.rbegin(),
-          contig->reads_.rend());
+      reads_.insert(reads_.end(), contig->reads_.rbegin(), contig->reads_.rend());
+      overlaps_.push_back(better_overlap);
+      overlaps_.insert(overlaps_.end(), contig->overlaps_.rbegin(), contig->overlaps_.rend());
     }
   }
   valid_ = true;
@@ -50,6 +49,13 @@ void Contig::SetValid(bool value = true) {
 bool Contig::IsUsable() const {
   return valid_ && alive_;
 }
+
+//bool Contig::IsLeftOverlap(BetterOverlapPtr better_overlap) const {
+  //const auto& overlap = better_overlap->overlap();
+  //const auto& contig_start = reads_.front()->id();
+  //const auto& overlap_end = better_overlap->GoesFromFirst() ? overlap->read_two : overlap->read_one;
+  //return overlap_end == contig_start;
+//}
 
 bool Contig::IsLeftOverlap(BetterOverlapPtr better_overlap) const {
   auto overlap = better_overlap->overlap();
@@ -68,6 +74,10 @@ size_t Contig::size() const {
 
 const deque< BetterRead* >& Contig::getReads() {
   return reads_;
+}
+
+const deque< BetterOverlapPtr >& Contig::getOverlaps() {
+  return overlaps_;
 }
 
 ContigSet::ContigSet(BetterReadSet* read_set) : contigs_(read_set->size()) {
