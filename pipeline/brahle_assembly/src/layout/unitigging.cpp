@@ -262,8 +262,8 @@ void Unitigging::makeContigs(BetterOverlapSetPtr& c_overlaps, overlap::ReadSet*&
     auto overlap = better_overlap->overlap();
     auto read_one = overlap->read_one;
     auto read_two = overlap->read_two;
-    if (degrees[read_one][better_overlap->GoesFrom(read_one)] == 1 &&
-        degrees[read_two][better_overlap->GoesFrom(read_two)] == 1) {
+    if (degrees[read_one][better_overlap->Suf(read_one)] == 1 &&
+        degrees[read_two][better_overlap->Suf(read_two)] == 1) {
       auto contig_one = uf.find(read_one);
       auto contig_two = uf.find(read_two);
       fprintf(stderr, "Joining contigs %d and %d\n", contig_one, contig_two);
