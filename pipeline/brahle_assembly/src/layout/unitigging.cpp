@@ -273,6 +273,18 @@ void Unitigging::makeContigs(BetterOverlapSetPtr& c_overlaps, overlap::ReadSet*&
       } else {
         (*contigs_)[contig_two]->Join(better_overlap, (*contigs_)[contig_one]);
       }
+    } else {
+      fprintf(stderr,
+          "(%d, %d) is not a candidate for contig because of degrees d[%d][%d] = %d; d[%d][%d] = %d\n",
+          read_one,
+          read_two,
+          read_one,
+          better_overlap->Suf(read_one),
+          degrees[read_one][better_overlap->Suf(read_one)],
+          read_two,
+          better_overlap->Suf(read_two),
+          degrees[read_two][better_overlap->Suf(read_two)]
+      );
     }
   }
 
