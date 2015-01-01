@@ -107,8 +107,6 @@ namespace parsero {
         int o;
         while ((o = getopt(argc, argv, options_format.c_str())) != -1) {
 
-            fprintf(stderr, "option: %c\n", o);
-
             if (o == 'h') {
                 help(argv[0]);
                 exit(0);
