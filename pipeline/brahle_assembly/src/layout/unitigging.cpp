@@ -63,11 +63,19 @@ void Unitigging::removeContainmentEdges() {
     if (better_overlap->one()->size() == overlap->len_one) {
       erased[overlap->read_one] = true;
       (*reads_)[overlap->read_two]->addCoverage(1);
-      fprintf(stderr, "Removing read %d as containment read\n", (*reads_)[overlap->read_one]->orig_id());
+      fprintf(stderr, "Removing read %d as containment read (%d, %d)\n",
+          (*reads_)[overlap->read_one]->orig_id(),
+          (*reads_)[overlap->read_one]->orig_id(),
+          (*reads_)[overlap->read_two]->orig_id()
+      );
     } else if (better_overlap->two()->size() == overlap->len_two) {
       erased[overlap->read_two] = true;
       (*reads_)[overlap->read_one]->addCoverage(1);
-      fprintf(stderr, "Removing read %d as containment read\n", (*reads_)[overlap->read_two]->orig_id());
+      fprintf(stderr, "Removing read %d as containment read (%d, %d)\n",
+          (*reads_)[overlap->read_two]->orig_id(),
+          (*reads_)[overlap->read_one]->orig_id(),
+          (*reads_)[overlap->read_two]->orig_id()
+      );
     }
   }
   no_contains_ = BetterOverlapSetPtr(new BetterOverlapSet(reads_));
