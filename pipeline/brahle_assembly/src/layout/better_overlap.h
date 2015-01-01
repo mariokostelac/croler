@@ -108,12 +108,20 @@ class BetterOverlap {
   const uint32_t Suf(uint32_t read) const;
 
   /**
-   * Returns true for read_one if overlaps looks like:
+   * Returns true for read_one if overlap looks like:
    * ------------      (read one)
    *      ------------ (read two)
    * Direction does not matter.
    */
-  const uint32_t GoesFrom(uint32_t read) const;
+  const bool GoesFrom(uint32_t read) const;
+
+  /**
+   * Returns true if overlap looks like:
+   * ------------      (read one)
+   *      ------------ (read two)
+   * Direction does not matter.
+   */
+  const bool GoesFromFirst() const;
 
   /**
    * Returns the ID of the other read.
