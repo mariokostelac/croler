@@ -33,7 +33,6 @@ default: prepare exe
 prepare:
 	@test -d bin || mkdir bin
 
-
 exe: $(EXE)
 
 test: $(TEST)
@@ -42,7 +41,7 @@ test: $(TEST)
 	done
 
 clean:
-	rm bin/*
+	@test -d bin && rm -r bin || true
 
 install: $(EXE)
 	cp bin/msa /usr/local/bin/grbin-msa

@@ -91,5 +91,5 @@ bin/test_align: $(align) src/align/test_align.cpp
 	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 clean cleanall:
-	@test -d bin && rm -r bin
-	@test -d obj && rm -r obj
+	@test -d bin && rm -r bin || true
+	@test -d obj && rm -r obj || true

@@ -51,8 +51,7 @@ amos:
 	@$(MAKE) -C vendor/AMOS
 
 clean:
-	@/bin/echo -e "\e[34m  Building AMOS \033[0m"
-	rm bin/*
+	@test -d bin && rm -r bin || true
 
 $(HPP): %.h: %.hpp
 	@touch bin/$@
