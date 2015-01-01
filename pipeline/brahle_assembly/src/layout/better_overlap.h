@@ -100,6 +100,10 @@ class BetterOverlap {
   /**
    * Returns which end of the read this overlap is using.
    * 0 if it is using begining, 1 if it using the end.
+   * It respects direction, so if overlap looks like
+   * ----->
+   *   <-----
+   * it will return 1 for second read.
    */
   const uint32_t Suf(uint32_t read) const;
 
