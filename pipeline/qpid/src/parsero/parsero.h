@@ -101,11 +101,13 @@ namespace parsero {
             format_stream << option.format;
         }
 
-        const char *options_format = format_stream.str().c_str();
+        std::string options_format = format_stream.str();
 
         // process options
         int o;
-        while ((o = getopt(argc, argv, options_format)) != -1) {
+        while ((o = getopt(argc, argv, options_format.c_str())) != -1) {
+
+            fprintf(stderr, "option: %c\n", o);
 
             if (o == 'h') {
                 help(argv[0]);
