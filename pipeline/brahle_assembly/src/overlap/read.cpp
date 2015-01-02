@@ -9,7 +9,11 @@ namespace overlap {
 
 
 String::String(const uint8_t* data, size_t size)
-    : data_(data), size_(size) {
+    : data_(data), hi_(size), lo_(0) {
+}
+
+String::String(const uint8_t* data, size_t lo, size_t hi)
+    : data_(data), hi_(hi), lo_(lo) {
 }
 
 String::~String() {
@@ -17,19 +21,19 @@ String::~String() {
 }
 
 const uint8_t* String::data() const {
-  return data_;
+  return data_ + lo_;
 }
 
 size_t String::size() const {
-  return size_;
+  return hi_ - lo_;
 }
 
 const uint8_t& String::operator[] (const uint32_t idx) const {
-  return data_[idx];
+  return data_[idx + lo_];
 }
 
 bool String::operator< (const String& other) const {
-  return strcmp((const char*)data_, (const char*)other.data_) < 0;
+  return strncmp((const char*)data_ + lo_, (const char*)other.data_ + other.lo_, hi_ - lo_) < 0;
 }
 
 Read::Read(const uint8_t* data, size_t size, uint32_t id, uint32_t orig_id)
@@ -37,10 +41,28 @@ Read::Read(const uint8_t* data, size_t size, uint32_t id, uint32_t orig_id)
       id_(id),
       orig_id_(orig_id),
       usable_(true),
-      coverage_(1) {
+      coverage_(1),
+      lo_(0), hi_(size) {
+}
+
+Read::Read(const uint8_t* data, uint32_t lo, uint32_t hi, uint32_t id, uint32_t orig_id)
+    : String(data, lo, hi),
+      id_(id),
+      orig_id_(orig_id),
+      usable_(true),
+      coverage_(1),
+      lo_(lo), hi_(hi) {
 }
 
 Read::~Read() {
+}
+
+uint32_t Read::hi() const {
+  return hi_;
+}
+
+uint32_t Read::lo() const {
+  return lo_;
 }
 
 uint32_t Read::id() const {

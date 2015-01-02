@@ -15,6 +15,7 @@ namespace overlap {
 class String {
 public:
   String(const uint8_t* data, size_t size);
+  String(const uint8_t* orig_data, size_t lo, size_t hi);
   virtual ~String();
 
   const uint8_t* data() const;
@@ -25,16 +26,22 @@ public:
 
 protected:
   const uint8_t* data_;
-  const size_t size_;
+  const size_t lo_;
+  const size_t hi_;
 };
 
 class Read : public String {
 public:
   Read(const uint8_t* data, size_t size, uint32_t id, uint32_t orig_id);
+  Read(const uint8_t* orig_data, uint32_t lo, uint32_t hi, uint32_t id, uint32_t orig_id);
   ~Read();
 
   uint32_t id() const;
   uint32_t orig_id() const;
+
+  uint32_t lo() const;
+  uint32_t hi() const;
+
   // @mculinovic
   void usable(bool value) { usable_ = value; }
   bool isUsable() { return usable_; }
@@ -44,6 +51,11 @@ public:
 private:
   const uint32_t id_;
   const uint32_t orig_id_;
+
+  // limit indices from the original sequence (data contains only seq.substr(lo, hi)).
+  const uint32_t lo_;
+  const uint32_t hi_;
+
   // @mculinovic - flag if read is usable for making contigs
   bool usable_;
   // @mculinovic - measure for reads merged into this one

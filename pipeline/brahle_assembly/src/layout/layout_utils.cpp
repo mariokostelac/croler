@@ -77,8 +77,10 @@ KSEQ_INIT(gzFile, gzread)
       do {
         fgets(buff, sizeof(buff), fd);
       } while (buff[0] != '.');
-      fscanf(fd, " frg:%*d clr:%*d,%d", &length);
-      return new overlap::Read(data, length, pos, id);
+      int lo, hi;
+      fscanf(fd, " frg:%*d clr:%d,%d", &lo, &hi);
+      assert(lo < hi);
+      return new overlap::Read(data, lo, hi, pos, id);
     }
 
     overlap::ReadSet* ReadReadsAfg(FILE *fd) {
@@ -370,7 +372,7 @@ KSEQ_INIT(gzFile, gzread)
           for (const auto& overlap: overlaps) {
             if (overlap.first == read2->id() && overlap.second != nullptr) {
               fprintf(contigs_file, "{TLE\n");
-              fprintf(contigs_file, "clr:%u,%u\n", 0, read1->read()->size());
+              fprintf(contigs_file, "clr:%u,%u\n", read1->read()->lo(), read1->read()->hi());
               fprintf(contigs_file, "off:%u\n", offset);
               fprintf(contigs_file, "src:%d\n}\n", read1->read()->orig_id());
               offset += read1->read()->size() - overlap.second->Length();
@@ -382,7 +384,7 @@ KSEQ_INIT(gzFile, gzread)
         // output last read
         layout::BetterRead* read = reads[num_reads - 1];
         fprintf(contigs_file, "{TLE\n");
-        fprintf(contigs_file, "clr:%u,%u\n", 0, read->read()->size());
+        fprintf(contigs_file, "clr:%u,%u\n", read->read()->lo(), read->read()->hi());
         fprintf(contigs_file, "off:%u\n", offset);
         fprintf(contigs_file, "src:%d\n}\n", read->read()->orig_id());
 
