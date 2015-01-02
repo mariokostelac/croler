@@ -40,6 +40,8 @@ void Contig::Join(BetterOverlapPtr better_overlap, Contig* contig) {
   }
   valid_ = true;
   contig->Kill();
+
+  assert(reads_.size() == overlaps_.size() + 1);
 }
 
 void Contig::SetValid(bool value = true) {
