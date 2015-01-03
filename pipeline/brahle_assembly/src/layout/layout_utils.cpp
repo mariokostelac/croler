@@ -9,19 +9,20 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
-using std::stringstream;
-using std::string;
-using std::unordered_map;
 
 #include "layout/layout_utils.h"
 #include "fastq_parser/parser.h"
 #include "AMOS/src/foundation_AMOS.hh"
 
+using std::stringstream;
+using std::string;
+using std::swap;
+using std::unordered_map;
+
 // init fasta/fastq reader
 KSEQ_INIT(gzFile, gzread)
 
   namespace layout {
-
 
     /**
      * Since ids in ReadSet start with 0 and real ids (reads read from afg file/AMOS bank) can start with arbitrary number,
@@ -345,7 +346,7 @@ KSEQ_INIT(gzFile, gzread)
      * If file does not exist, it will be created.
      * Returns the number of written contigs.
      */
-    int ContigsToFile(std::shared_ptr<layout::ContigSet> contigs, const char *contigs_filename) {
+    int ContigsToFile(std::shared_ptr<ContigSet> contigs, const char *contigs_filename) {
       FILE *contigs_file = fopen(contigs_filename, "w");
       if (contigs_file == nullptr) {
         return -1;
@@ -357,38 +358,65 @@ KSEQ_INIT(gzFile, gzread)
         // skip non-usable contigs
         if (!((*contigs)[i]->IsUsable())) continue;
 
-        fprintf(contigs_file, "{LAY\n");
+
+        const std::deque<BetterRead*> &reads = (*contigs)[i]->getReads();
+        const std::deque<BetterOverlap*> &overlaps = (*contigs)[i]->getOverlaps();
+
+        bool forward = true;
         uint32_t offset = 0;
-        const std::deque< layout::BetterRead* > &reads = (*contigs)[i]->getReads();
 
-        int num_reads = reads.size();
-        for (int j = 0; j < num_reads - 1; ++j) {
-          layout::BetterRead* read1 = reads[j];
-          layout::BetterRead* read2 = reads[j + 1];
-          read1->Finalize();
-          const std::vector< std::pair< uint32_t, layout::BetterOverlap* >> &overlaps = read1->overlaps();
+        const auto& f_read = reads[0];
+        const auto& f_overlap = overlaps[0]->overlap();
 
-          // find overlap between first and second read
-          for (const auto& overlap: overlaps) {
-            if (overlap.first == read2->id() && overlap.second != nullptr) {
-              fprintf(contigs_file, "{TLE\n");
-              fprintf(contigs_file, "clr:%u,%u\n", read1->read()->lo(), read1->read()->hi());
-              fprintf(contigs_file, "off:%u\n", offset);
-              fprintf(contigs_file, "src:%d\n}\n", read1->read()->orig_id());
-              offset += read1->read()->size() - overlap.second->Length();
-              break;
-            }
-          }
+        if (f_read->id() == f_overlap->read_two && f_overlap->type == overlap::Overlap::Type::EE) {
+          forward = false;
         }
 
-        // output last read
-        layout::BetterRead* read = reads[num_reads - 1];
-        fprintf(contigs_file, "{TLE\n");
-        fprintf(contigs_file, "clr:%u,%u\n", read->read()->lo(), read->read()->hi());
-        fprintf(contigs_file, "off:%u\n", offset);
-        fprintf(contigs_file, "src:%d\n}\n", read->read()->orig_id());
+        auto process_read =
+          [&contigs_file, &forward, &offset] (const BetterRead* r, const BetterOverlap* o) {
+            const auto& read = r->read();
+            const auto& overlap = o->overlap();
+            bool eb = overlap->type == overlap::Overlap::Type::EB;
+            uint32_t lo = read->lo();
+            uint32_t hi = read->hi();
+            if (!forward) {
+              swap(lo, hi);
+            }
 
+            fprintf(contigs_file, "{TLE\n");
+            fprintf(contigs_file, "clr:%u,%u\n", lo, hi);
+            fprintf(contigs_file, "off:%u\n", offset);
+            fprintf(contigs_file, "src:%d\n}\n", read->orig_id());
+
+            if (read->id() == overlap->read_one) {
+              if (overlap->a_hang > 0) {
+                offset += overlap->a_hang;
+              } else {
+                offset += abs(overlap->b_hang);
+              }
+            } else if (read->id() == overlap->read_two) {
+              if (overlap->b_hang > 0) {
+                offset += overlap->b_hang;
+              } else {
+                offset += abs(overlap->a_hang);
+              }
+            }
+
+            if (overlap->type == overlap::Overlap::Type::EE) {
+              forward = !forward;
+            }
+          };
+
+        fprintf(contigs_file, "{LAY\n");
+
+        process_read(reads[0], overlaps[0]);
+        int num_reads = reads.size();
+        for (int j = 1; j < num_reads - 1; ++j) {
+          process_read(reads[j], overlaps[j]);
+        }
+        process_read(reads[num_reads-1], overlaps[num_reads-2]);
         fprintf(contigs_file, "}\n");
+
         written++;
       }
 

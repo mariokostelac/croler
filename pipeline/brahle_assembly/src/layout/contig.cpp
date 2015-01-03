@@ -1,6 +1,7 @@
 #include "layout/contig.h"
 
 using std::deque;
+using std::reverse;
 
 namespace layout {
 
@@ -42,6 +43,15 @@ void Contig::Join(BetterOverlapPtr better_overlap, Contig* contig) {
   contig->Kill();
 
   assert(reads_.size() == overlaps_.size() + 1);
+
+  // reverse the contig if it goes in wrong direction
+  const auto& r = reads_[0]->read();
+  const auto& o = overlaps_[0]->overlap();
+  if (r->id() == o->read_one && o->a_hang < 0 ||
+      r->id() == o->read_two && o->b_hang > 0) {
+    std::reverse(reads_.begin(), reads_.end());
+    std::reverse(overlaps_.begin(), overlaps_.end());
+  }
 }
 
 void Contig::SetValid(bool value = true) {

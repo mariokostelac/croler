@@ -6,6 +6,7 @@
 #include <layout/better_read.h>
 #include <deque>
 #include <vector>
+#include <algorithm>
 
 namespace layout {
 
