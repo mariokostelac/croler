@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -Wall -std=c++11 -O2 -I ./vendor -I ./src
+CFLAGS = -g -Wall -std=c++11 -O2 -I ./vendor -I ./src -I ./
 CFLAGS_AMOS = -Wno-deprecated -O2
 LDFLAGS = -lz -pthread
 

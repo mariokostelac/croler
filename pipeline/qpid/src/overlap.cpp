@@ -6,6 +6,7 @@
 #include "align/align.h"
 #include "parsero/parsero.h"
 #include "read.h"
+#include "lib/amos/reader.cpp"
 
 #include <algorithm>
 #include <mutex>
@@ -47,7 +48,7 @@ ThreadPool* pool;
 
 void usage(int argc, char **argv) {
   fprintf(stderr, "usage:\n");
-  fprintf(stderr, "\t%s [-f <fastq_reads>] [-O <output_overlaps_afg>] [-b <amos_input_bank>] [-B <amos_output_bank>]\n", argv[0]);
+  fprintf(stderr, "\t%s [-f <reads.afg>] [-O <output_overlaps_afg>] [-b <amos_input_bank>] [-B <amos_output_bank>]\n", argv[0]);
 }
 
 bool sort_offsets(offset_t a, offset_t b) {
@@ -78,6 +79,29 @@ void read_from_fasta(vector<Read>& reads, const char *filename) {
 
     timer->end(true);
     delete timer;
+}
+
+int read_from_afg(vector<Read>& reads, const char *filename) {
+    Timer* timer = new Timer("reading");
+    fprintf(stderr, "* Reading from file %s...\n", filename);
+
+    vector<AMOS::Read*> tmp_reads;
+    int reads_size = AMOS::get_reads(tmp_reads, filename);
+    for (int i = 0; i < reads_size; ++i) {
+      const auto& r = tmp_reads[i];
+      int r_len = r->clr_hi - r->clr_lo;
+      // handle it better
+      char* cpy = new char[r_len + 1];
+      strncpy(cpy, r->seq + r->clr_lo, r_len);
+      cpy[r_len] = 0;
+      reads.push_back(Read(r->iid, cpy));
+      delete tmp_reads[i];
+    }
+
+    timer->end(true);
+    delete timer;
+
+    return reads_size;
 }
 
 void read_from_bank(vector<Read>& reads, const char *bank_name) {
@@ -325,7 +349,7 @@ int main(int argc, char **argv) {
     // read rads
     if (BANK_INPUT == NULL) {
       // read the data
-      read_from_fasta(reads, INPUT_FILE);
+      read_from_afg(reads, INPUT_FILE);
     } else {
       // read the data
       read_from_bank(reads, BANK_INPUT);
