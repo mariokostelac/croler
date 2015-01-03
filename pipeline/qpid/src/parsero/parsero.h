@@ -37,7 +37,7 @@ namespace parsero {
         // print call line
         fprintf(stderr, "\t%s [options] ", name);
         for (auto curr_arg : arguments) {
-            fprintf(stderr, "%s%s ", curr_arg.name.c_str(), curr_arg.list == true ? "..." : "");
+            fprintf(stderr, "<%s%s> ", curr_arg.name.c_str(), curr_arg.list == true ? "..." : "");
         }
         fprintf(stderr, "\n\n");
 
