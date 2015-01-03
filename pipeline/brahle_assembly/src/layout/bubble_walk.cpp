@@ -44,17 +44,24 @@ void BubbleWalk::addEdge(std::shared_ptr<Edge> edge) {
 }
 
 std::string BubbleWalk::getSequence() {
-    // treba provjeriti ako ovo radi
+    // check if this works
+    // add first read data to sequence
     std::string sequence(reinterpret_cast<char *> (
                 const_cast<uint8_t *> (first->data()->data())));
-    // sequence.append(first->data());
+    // reverse read data if prefix of first read is part of first overlap
     bool isReverse = !edges.empty() &&
             edges[0]->label().overlap()->Suf(first->id()) == 0;
     if (isReverse) sequence = std::string(sequence.rbegin(), sequence.rend());
 
     for (auto const& edge: edges) {
-        // provjeriti sto se dogada s komplementima i da li treba reverse?
-        sequence.append(edge->label().get());
+        // check if reverseal and complements are handled correctly
+        // in class label method get() already implements reverse complement
+        // but reversal for prefix and suffix isn't handled so reverse needed
+        std::string label = edge->label().get();
+        if (isReverse) {
+            label = std::string(label.rbegin(), label.rend());
+        }
+        sequence.append(label);
     }
 
     if (isReverse) sequence = std::string(sequence.rbegin(), sequence.rend());

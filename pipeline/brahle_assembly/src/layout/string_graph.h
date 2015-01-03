@@ -246,6 +246,8 @@ class Graph {
 
   /**
    * Removes bubbles from graph
+   * Idea for this is inspired by smoothing process
+   * in jts String graph assembler: https://github.com/jts/sga
    * @mculinovic
    */
   void removeBubbles();

@@ -186,7 +186,6 @@ Unitigging::BetterOverlapSetPtr Graph::extractOverlaps() {
 void Graph::removeBubbles() {
   fprintf(stderr, "Bubble popping\n");
   for (auto const& vertex: vertices_) {
-    // puts("remove bubbles"); 
     // std::shared_ptr< Vertex > vertex = getVertex(269 - 159);
     // fprintf(stderr, "Edges of vertex: %d %d\n", vertex->count_edges_B(), vertex->count_edges_E());
     // skip vertices already marked for removal
@@ -216,21 +215,22 @@ void Graph::removeBubbles() {
       else fprintf(stderr, "Bubble walks: %d\n", bubble_walks.size());
 
       uint32_t selected_walk = -1;
-      uint32_t selected_coverage = 0;
+      double selected_coverage = 0;
       bool is_transitive = false;  // exits walk with only one edge
 
+      // minimum overlaps at start and end of bubble walks
       uint32_t overlap_start = std::numeric_limits<uint32_t>::max();
       uint32_t overlap_end = std::numeric_limits<uint32_t>::max();
 
       size_t i = 0;
       for (auto bubble_walk: bubble_walks) {
         if (bubble_walk.Edges().size() <= 1) {
-          puts("Tranitive bubble");
+          puts("Transitive bubble");
           is_transitive = true;
           break;
         }
 
-        uint32_t curr_coverage = 0;
+        double curr_coverage = 0;
         for (auto const& walk_edge: bubble_walk.Edges()) {
           curr_coverage += walk_edge->B()->coverage();
         }
@@ -254,9 +254,11 @@ void Graph::removeBubbles() {
         ++i; 
       }
 
+      // bubble is transitive so it's not valid for removal
       if (is_transitive)
         continue;
 
+      // extract sequences from walks
       std::vector< std::string > bubble_sequences;
       for (auto &bubble_walk: bubble_walks) {
         std::shared_ptr< Vertex > start = bubble_walk.Edges().front()->A();
@@ -267,9 +269,13 @@ void Graph::removeBubbles() {
         uint32_t start_idx = 0;
         uint32_t end_idx = 0;
         if (dir == 0) {
+          // prefix of first read is part of first overlap in bubble walk
+          // it means sequence direction is from end to start
           start_idx = end->data()->size() - overlap_end;
           end_idx = sequence.size() - (start->data()->size() - overlap_start);
         } else {
+          // suffix of first read is part of first overlap in bubble walk
+          // it means sequence direction is from start to end
           start_idx = start->data()->size() - overlap_start;
           end_idx = sequence.size() - (end->data()->size() - overlap_end);
         }
