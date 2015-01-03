@@ -35,6 +35,10 @@ uint32_t Node::expand(std::deque<Node*>& expand_queue) {
     std::vector<std::shared_ptr< Edge >> edges = vertex_->getEdges(direction_);
     for (auto const &edge: edges) {
         uint32_t child_expand_dir = direction_;  // !direction_;
+        // when overlap is innie change direction
+        if (edge->label().overlap()->overlap()->type == overlap::Overlap::Type::EE) {
+            child_expand_dir = !child_expand_dir;
+        }
         Node *child = new Node(edge->B(), child_expand_dir, this,
                               edge, edge->label().get().length());
         expand_queue.emplace_back(child);
