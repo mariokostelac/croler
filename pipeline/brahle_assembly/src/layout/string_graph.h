@@ -135,7 +135,6 @@ class Graph {
   std::vector< std::shared_ptr< Edge > > edges_;
   std::map< uint32_t, uint32_t > id_to_vertex_map_;
   bool finalized_;
-  static const uint32_t trimSeqLenThreshold = 600;
   // queues for bubble popping
   std::deque< Node* > opened_queue;
   std::deque< Node* > closed_queue;
@@ -231,7 +230,7 @@ class Graph {
    * Removes tips and disconnected vertices from graph.
    * @mculinovic
    */
-  void trim();
+  void trim(const uint32_t trmSeqLenThreshold);
 
   /**
    * Method extracts read set from graph

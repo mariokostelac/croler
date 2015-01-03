@@ -179,7 +179,9 @@ int main(int argc, char *argv[]) {
 
   // trimming
   // @mculinovic
-  g.trim();
+  const uint32_t trimSeqLenThreshold = 300;
+  g.trim(trimSeqLenThreshold);
+  // g.removeBubbles();
 
   typedef std::shared_ptr< layout::BetterOverlapSet > BetterOverlapSetPtr;
   overlap::ReadSet* read_set = g.extractReads();
