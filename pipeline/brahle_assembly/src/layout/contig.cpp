@@ -14,6 +14,33 @@ Contig::Contig(BetterReadPtr starting, BetterReadSetPtr read_set) :
 Contig::~Contig() {
 }
 
+bool Contig::ForwardOriented() {
+  const auto& f_read = reads_[0]->read();
+  const auto& f_overlap = overlaps_[0]->overlap();
+  if (f_read->id() == f_overlap->read_one) {
+    //   ------>
+    // ------>
+    if (f_overlap->a_hang < 0) {
+      return false;
+    }
+  } else if (f_read->id() == f_overlap->read_two) {
+    if (f_overlap->type == overlap::Overlap::Type::EB) {
+      // ------>
+      //   ------>
+      if (f_overlap->b_hang > 0) {
+        return false;
+      }
+    } else {
+      //   ------>
+      // <------
+      if (f_overlap->b_hang < 0) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 // TODO(brahle): ovo je spora metoda spajanja
 void Contig::Join(BetterOverlapPtr better_overlap, Contig* contig) {
   assert(alive_);
@@ -43,15 +70,6 @@ void Contig::Join(BetterOverlapPtr better_overlap, Contig* contig) {
   contig->Kill();
 
   assert(reads_.size() == overlaps_.size() + 1);
-
-  // reverse the contig if it goes in wrong direction
-  const auto& r = reads_[0]->read();
-  const auto& o = overlaps_[0]->overlap();
-  if (r->id() == o->read_one && o->a_hang < 0 ||
-      r->id() == o->read_two && o->b_hang > 0) {
-    std::reverse(reads_.begin(), reads_.end());
-    std::reverse(overlaps_.begin(), overlaps_.end());
-  }
 }
 
 void Contig::SetValid(bool value = true) {

@@ -208,25 +208,19 @@ namespace layout {
       // skip non-usable contigs
       if (!((*contigs)[i]->IsUsable())) continue;
 
-
       const std::deque<BetterRead*> &reads = (*contigs)[i]->getReads();
       const std::deque<BetterOverlap*> &overlaps = (*contigs)[i]->getOverlaps();
 
-      bool forward = true;
+      bool forward = (*contigs)[i]->ForwardOriented();
       uint32_t offset = 0;
 
       const auto& f_read = reads[0];
       const auto& f_overlap = overlaps[0]->overlap();
 
-      if (f_read->id() == f_overlap->read_two && f_overlap->type == overlap::Overlap::Type::EE) {
-        forward = false;
-      }
-
       auto process_read =
         [&contigs_file, &forward, &offset] (const BetterRead* r, const BetterOverlap* o) {
           const auto& read = r->read();
           const auto& overlap = o->overlap();
-          bool eb = overlap->type == overlap::Overlap::Type::EB;
           uint32_t lo = read->lo();
           uint32_t hi = read->hi();
           if (!forward) {
