@@ -51,6 +51,9 @@ MultipleAligner::addSequence(const char *str, int len, off_t offset) {
   }
   if (was_neg) {
     std::reverse(t.begin(), t.end());
+    for (int i = 0; i < len; ++i) {
+      t[i] = Base::complement(t[i]);
+    }
   }
   words_.emplace_back(&t[0], t.size());
   offsets_.push_back(offset);

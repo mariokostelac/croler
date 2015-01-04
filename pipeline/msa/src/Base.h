@@ -11,6 +11,7 @@ struct Base {
   static uint8_t humanToInt(char base);
   static uint8_t humanToIntCareful(char base);
   static char intToHuman(uint8_t base);
+  static uint8_t complement(uint8_t base);
 
   // class constants.
   static const uint8_t OUT_GAP;

@@ -43,4 +43,20 @@ char Base::intToHuman(uint8_t base) {
   return humanAlphabet[base];
 }
 
+uint8_t Base::complement(uint8_t base) {
+  assert(base < 6);
+  switch (base) {
+    case Base::A:
+      return Base::T;
+    case Base::T:
+      return Base::A;
+    case Base::C:
+      return Base::G;
+    case Base::G:
+      return Base::C;
+    default:
+      return 0;
+  }
+}
+
 }
