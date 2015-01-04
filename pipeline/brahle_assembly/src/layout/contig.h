@@ -65,11 +65,6 @@ class Contig {
    */
   void Kill();
 
-  /**
-   * Returns true if first read is forward oriented.
-   */
-  bool ForwardOriented();
-
  private:
   std::deque< BetterReadPtr > reads_;
   std::deque< BetterOverlapPtr > overlaps_;

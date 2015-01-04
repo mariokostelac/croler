@@ -211,11 +211,12 @@ namespace layout {
       const std::deque<BetterRead*> &reads = (*contigs)[i]->getReads();
       const std::deque<BetterOverlap*> &overlaps = (*contigs)[i]->getOverlaps();
 
-      bool forward = (*contigs)[i]->ForwardOriented();
-      uint32_t offset = 0;
-
       const auto& f_read = reads[0];
       const auto& f_overlap = overlaps[0]->overlap();
+
+      // forward is ---->, backward is <----
+      bool forward = overlaps[0]->Suf(f_read->id());
+      uint32_t offset = 0;
 
       auto process_read =
         [&contigs_file, &forward, &offset] (const BetterRead* r, const BetterOverlap* o) {

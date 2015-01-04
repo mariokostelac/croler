@@ -14,33 +14,6 @@ Contig::Contig(BetterReadPtr starting, BetterReadSetPtr read_set) :
 Contig::~Contig() {
 }
 
-bool Contig::ForwardOriented() {
-  const auto& f_read = reads_[0]->read();
-  const auto& f_overlap = overlaps_[0]->overlap();
-  if (f_read->id() == f_overlap->read_one) {
-    //   ------>
-    // ------>
-    if (f_overlap->a_hang < 0) {
-      return false;
-    }
-  } else if (f_read->id() == f_overlap->read_two) {
-    if (f_overlap->type == overlap::Overlap::Type::EB) {
-      // ------>
-      //   ------>
-      if (f_overlap->b_hang > 0) {
-        return false;
-      }
-    } else {
-      //   ------>
-      // <------
-      if (f_overlap->b_hang < 0) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
 // TODO(brahle): ovo je spora metoda spajanja
 void Contig::Join(BetterOverlapPtr better_overlap, Contig* contig) {
   assert(alive_);
