@@ -21,6 +21,8 @@
 using std::string;
 using std::cout;
 
+const uint32_t EXPECT_READS = 1 << 10;
+
 void usage(char *argv[]) {
   fprintf(
       stderr,
@@ -44,20 +46,8 @@ int main(int argc, char *argv[]) {
   snprintf(reads_file_name, sizeof(reads_file_name), "%s", argv[1]);
   snprintf(overlaps_file_name, sizeof(overlaps_file_name), "%s", argv[2]);
 
-  FILE *reads_file = nullptr;
   FILE *overlaps_file = nullptr;
   FILE *graphviz_file = nullptr;
-
-  if (strlen(reads_file_name)) {
-    reads_file = fopen(reads_file_name, "r");
-    if (reads_file == nullptr) {
-      fprintf(
-          stderr,
-          "ERROR: reads file ('%s') cannot be opened!\n",
-          reads_file_name);
-      exit(1);
-    }
-  }
 
   if (strlen(overlaps_file_name)) {
     overlaps_file = fopen(overlaps_file_name, "r");
@@ -80,21 +70,21 @@ int main(int argc, char *argv[]) {
   }
 
   // getting reads
-  std::shared_ptr< overlap::ReadSet > reads;
+  overlap::ReadSet reads(EXPECT_READS);
   if (strlen(reads_file_name) > 0) {
     fprintf(stderr, "Reading reads from afg file '%s'\n", reads_file_name);
-    reads.reset(layout::ReadReadsAfg(reads_file));
+    layout::ReadReadsAfg(reads, reads_file_name);
   } else {
     fprintf(stderr, "No input file with reads provided\n");
     usage(argv);
   }
-  fprintf(stderr, "Number of reads = %u\n", reads->size());
+  fprintf(stderr, "Number of reads = %u\n", reads.size());
 
   // getting overlaps
   std::shared_ptr< overlap::OverlapSet > overlaps;
   if (strlen(overlaps_file_name) > 0) {
     fprintf(stderr, "Reading overlaps from afg file '%s'\n", overlaps_file_name);
-    overlaps.reset(layout::ReadOverlapsAfg(reads.get(), overlaps_file));
+    overlaps.reset(layout::ReadOverlapsAfg(&reads, overlaps_file));
   } else {
     fprintf(stderr, "No input file with overlaps provided\n");
     usage(argv);
@@ -103,7 +93,7 @@ int main(int argc, char *argv[]) {
 
   clock_t start = clock();
   std::shared_ptr< layout::Unitigging > u(
-      new layout::Unitigging(reads.get(), overlaps.get()));
+      new layout::Unitigging(&reads, overlaps.get()));
   u->start();
   fprintf(
       stderr,
@@ -116,7 +106,7 @@ int main(int argc, char *argv[]) {
   // create initial dotgraph
   {
     std::ofstream initial_graph_file;
-    string initial_graph = layout::dot_graph(reads.get(), overlaps.get());
+    string initial_graph = layout::dot_graph(&reads, overlaps.get());
     initial_graph_file.open("all_overlaps.dot", std::fstream::out);
     initial_graph_file << initial_graph;
     initial_graph_file.close();
@@ -126,7 +116,7 @@ int main(int argc, char *argv[]) {
   {
     std::ofstream no_transitives_graph;
     no_transitives_graph.open("no_transitives.dot", std::fstream::out);
-    layout::BetterReadSet brs(reads.get(), false);
+    layout::BetterReadSet brs(&reads, false);
     no_transitives_graph << layout::dot_graph(&brs, u->noTransitives().get());
     no_transitives_graph.close();
   }
@@ -162,7 +152,7 @@ int main(int argc, char *argv[]) {
   {
     std::ofstream after_trimming_graph;
     after_trimming_graph.open("after_trimming.dot", std::fstream::out);
-    layout::BetterReadSet brs(reads.get(), false);
+    layout::BetterReadSet brs(&reads, false);
     after_trimming_graph << layout::dot_graph(&brs, g.extractOverlaps().get());
     after_trimming_graph.close();
   }

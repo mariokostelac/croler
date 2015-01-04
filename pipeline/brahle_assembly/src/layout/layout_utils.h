@@ -13,14 +13,9 @@
 namespace layout {
 
   /**
-   * Reads the next read from an .afg file. File pointer must point to the start of the read.
-   */
-  overlap::Read* ReadOneReadAfg(FILE *fd);
-
-  /**
    * Reads all reads from the .afg file.
    */
-  overlap::ReadSet* ReadReadsAfg(FILE *fd);
+  uint32_t ReadReadsAfg(overlap::ReadSet& container, const char *filename);
 
   /**
    * Reads all overlaps from the .afg file.

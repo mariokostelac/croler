@@ -10,12 +10,15 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "lib/amos/reader.cpp"
+
 #include "layout/layout_utils.h"
 
 using std::stringstream;
 using std::string;
 using std::swap;
 using std::unordered_map;
+using std::vector;
 
 namespace layout {
 
@@ -42,58 +45,33 @@ namespace layout {
     return mapped;
   }
 
-  /**
-   * Reads data for one read from the .afg file.
-   */
-  uint8_t* _ReadDataForOneRead(FILE *fd) {
-    static char buff[1 << 20];
-    char *buff_free = buff;
-    fscanf(fd, " seq: ");
-    buff[0] = 0;
-    do {
-      // We remove one character for '\n'. However, in the first step, strlen is
-      // 0, so we don't want to move in the negative direction.
-      buff_free += std::max(0, static_cast<int>(strlen(buff_free) - 1));
-      fgets(buff_free, sizeof(buff) - sizeof(char) * (buff_free - buff), fd);
-    } while (buff_free[0] != '.');
-    int length = buff_free - buff;
-    char* data = new char[length+1];
-    strncpy(data, buff, length);
-    data[length] = 0;
-    return reinterpret_cast<uint8_t*>(data);
-  }
+  uint32_t ReadReadsAfg(overlap::ReadSet& container, const char* filename) {
+    int records = 0;
 
-  overlap::Read* ReadOneReadAfg(FILE *fd, int pos) {
-    static char buff[1 << 20];
-    char *buff_free = buff;
-    int id;
-    int length;
-    fscanf(fd, " iid:%d eid:%*s", &id);
-    uint8_t *data = _ReadDataForOneRead(fd);
-    do {
-      fgets(buff, sizeof(buff), fd);
-    } while (buff[0] != '.');
-    int lo, hi;
-    fscanf(fd, " frg:%*d clr:%d,%d", &lo, &hi);
-    assert(lo < hi);
-    return new overlap::Read(data, lo, hi, pos, id);
-  }
-
-  overlap::ReadSet* ReadReadsAfg(FILE *fd) {
     clock_t start = clock();
     auto read_set = new overlap::ReadSet(10000);
-    int i = 0;
-    char buff[1 << 20];
-    while (fscanf(fd, " %s", buff) == 1) {
-      if (!strcmp(buff, "{RED")) {
-        read_set->Add(ReadOneReadAfg(fd, i));
-        ++i;
-      }
+    vector< AMOS::Read* > tmp_reads;
+    uint32_t reads_size = AMOS::get_reads(tmp_reads, filename);
+    if (reads_size < 0) {
+      return reads_size;
     }
+
+    for (int i = 0; i < reads_size; ++i) {
+      const auto& read = tmp_reads[i];
+      container.Add(new overlap::Read(
+            (uint8_t*) read->seq,
+            read->clr_lo,
+            read->clr_hi,
+            i,
+            read->iid
+      ));
+    }
+
     printf(
         "Reads read in %.2lfs\n",
         (clock() - start)/static_cast<double>(CLOCKS_PER_SEC));
-    return read_set;
+
+    return records;
   }
 
   overlap::OverlapSet* ReadOverlapsAfg(overlap::ReadSet* read_set, FILE *fd) {
