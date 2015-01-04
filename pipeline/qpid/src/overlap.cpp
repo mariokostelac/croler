@@ -2,9 +2,9 @@
 #include "timer/timer.h"
 #include "memory/memory.cpp"
 #include "align/align.h"
-#include "parsero/parsero.h"
 #include "read.h"
 #include "lib/amos/reader.cpp"
+#include "lib/parsero/parsero.h"
 
 #include <algorithm>
 #include <mutex>
