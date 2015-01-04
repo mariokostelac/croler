@@ -8,6 +8,7 @@
 #include <set>
 
 #include "layout/string_graph.h"
+#include "lib/edlib/src/edlib.h"
 
 namespace layout {
 
@@ -79,6 +80,40 @@ void Graph::printToGraphviz(FILE* file) const {
   fprintf(file, "};\n");
 }
 
+void Graph::deleteMarked() {
+  std::vector< std::shared_ptr< Vertex > > vertices_temp;
+  std::vector< std::shared_ptr< Edge > > edges_temp;
+  std::map< uint32_t, uint32_t > id_to_vertex_map_temp;
+
+  // delete vertices from graph
+  size_t num_vertices = vertices_.size();
+  for (size_t i = 0, j = 0; i < num_vertices; ++i) {
+    if (vertices_[i]->isMarked()) {
+      vertices_[i].reset();
+    } else {
+      vertices_temp.emplace_back(vertices_[i]);
+      id_to_vertex_map_temp[vertices_[i]->id()] = j++;
+    }
+  }
+
+  // delete edges from graph
+  size_t num_edges = edges_.size();
+  for (size_t i = 0; i < num_edges; ++i) {
+    if (edges_[i]->isMarked()) {
+      edges_[i].reset();
+    } else {
+      edges_temp.emplace_back(edges_[i]);
+    }
+  }
+
+  vertices_.clear();
+  vertices_ = vertices_temp;
+  edges_.clear();
+  edges_ = edges_temp;
+  id_to_vertex_map_.clear();
+  id_to_vertex_map_ = id_to_vertex_map_temp;
+}
+
 void Graph::trim(const uint32_t trimSeqLenThreshold) {
   uint32_t disconnected_ctr = 0;
   uint32_t tips_ctr = 0;
@@ -111,37 +146,7 @@ void Graph::trim(const uint32_t trimSeqLenThreshold) {
   }
 
   if (!(disconnected_ctr == 0 && tips_ctr == 0)) {
-    std::vector< std::shared_ptr< Vertex > > vertices_temp;
-    std::vector< std::shared_ptr< Edge > > edges_temp;
-    std::map< uint32_t, uint32_t > id_to_vertex_map_temp;
-
-    // delete vertices from graph
-    size_t num_vertices = vertices_.size();
-    for (size_t i = 0, j = 0; i < num_vertices; ++i) {
-      if (vertices_[i]->isMarked()) {
-        vertices_[i].reset();
-      } else {
-        vertices_temp.emplace_back(vertices_[i]);
-        id_to_vertex_map_temp[vertices_[i]->id()] = j++;
-      }
-    }
-
-    // delete edges from graph
-    size_t num_edges = edges_.size();
-    for (size_t i = 0; i < num_edges; ++i) {
-      if (edges_[i]->isMarked()) {
-        edges_[i].reset();
-      } else {
-        edges_temp.emplace_back(edges_[i]);
-      }
-    }
-
-    vertices_.clear();
-    vertices_ = vertices_temp;
-    edges_.clear();
-    edges_ = edges_temp;
-    id_to_vertex_map_.clear();
-    id_to_vertex_map_ = id_to_vertex_map_temp;
+    deleteMarked();
   }
 
   // fprintf(stderr, "vertices: %d\n", vertices_.size());
