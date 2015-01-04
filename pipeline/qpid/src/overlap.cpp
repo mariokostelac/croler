@@ -238,7 +238,7 @@ void setup_cmd_interface(int argc, char **argv) {
         [] (char *option) { sscanf(option, "%lf", &MAXIMUM_ERROR_RATE); }
     );
 
-    parsero::add_option("O:", "output file",
+    parsero::add_option("o:", "output file",
         [] (char *filename) { OUTPUT_FD = fopen(filename, "w"); }
     );
 
