@@ -18,4 +18,4 @@ Rikvajrmenti
 Pokretanje
 ----------
 
-    ./run.sh <reads.fasta>
+    ./run.sh <reads.afg>
