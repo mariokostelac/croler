@@ -21,14 +21,10 @@
 using std::string;
 using std::cout;
 
-char amos_bank_name[1024] = {0};
-
-bool READS_TYPE_FASTQ = false;
-
 void usage(char *argv[]) {
   fprintf(
       stderr,
-      "Usage: %s <amos_bank> | ([-f] <reads_file> <overlaps_file.afg>)\n",
+      "Usage: %s <reads_file> <overlaps_file.afg>\n",
       argv[0]);
   fprintf(stderr, "\n");
   fprintf(stderr, "Flags\n");
@@ -37,38 +33,16 @@ void usage(char *argv[]) {
   exit(1);
 }
 
-void parse_args(int argc, char **argv) {
-  int opterr = 0;
-  char c;
-  while ((c = getopt (argc, argv, "f")) != -1) {
-    switch (c) {
-      case 'f':
-        READS_TYPE_FASTQ = true;
-        break;
-      default:
-        usage(argv);
-    }
-  }
-}
-
 int main(int argc, char *argv[]) {
-  if (argc < 2 || argc > 4) {
+  if (argc != 3) {
     usage(argv);
   }
-  parse_args(argc, argv);
 
   char reads_file_name[1024] = {0};
   char overlaps_file_name[1024] = {0};
 
-  if (argc == 2) {
-    snprintf(amos_bank_name, sizeof(amos_bank_name), "%s", argv[1]);
-  } else if (argc == 3) {
-    snprintf(reads_file_name, sizeof(reads_file_name), "%s", argv[1]);
-    snprintf(overlaps_file_name, sizeof(overlaps_file_name), "%s", argv[2]);
-  } else if (argc == 4) {
-    snprintf(reads_file_name, sizeof(reads_file_name), "%s", argv[2]);
-    snprintf(overlaps_file_name, sizeof(overlaps_file_name), "%s", argv[3]);
-  }
+  snprintf(reads_file_name, sizeof(reads_file_name), "%s", argv[1]);
+  snprintf(overlaps_file_name, sizeof(overlaps_file_name), "%s", argv[2]);
 
   FILE *reads_file = nullptr;
   FILE *overlaps_file = nullptr;
@@ -107,17 +81,9 @@ int main(int argc, char *argv[]) {
 
   // getting reads
   std::shared_ptr< overlap::ReadSet > reads;
-  if (strlen(amos_bank_name) > 0) {
-    fprintf(stderr, "Reading reads from bank '%s'\n", amos_bank_name);
-    reads.reset(layout::ReadReadsAmos(amos_bank_name));
-  } else if (strlen(reads_file_name) > 0) {
-    if (READS_TYPE_FASTQ) {
-      fprintf(stderr, "Reading reads from fasta file '%s'\n", reads_file_name);
-      reads.reset(layout::ReadReadsSeq(reads_file_name));
-    } else {
-      fprintf(stderr, "Reading reads from afg file '%s'\n", reads_file_name);
-      reads.reset(layout::ReadReadsAfg(reads_file));
-    }
+  if (strlen(reads_file_name) > 0) {
+    fprintf(stderr, "Reading reads from afg file '%s'\n", reads_file_name);
+    reads.reset(layout::ReadReadsAfg(reads_file));
   } else {
     fprintf(stderr, "No input file with reads provided\n");
     usage(argv);
@@ -126,10 +92,7 @@ int main(int argc, char *argv[]) {
 
   // getting overlaps
   std::shared_ptr< overlap::OverlapSet > overlaps;
-  if (strlen(amos_bank_name) > 0) {
-    fprintf(stderr, "Reading overlaps from bank '%s'\n", amos_bank_name);
-    overlaps.reset(layout::ReadOverlapsAmos(reads.get(), amos_bank_name));
-  } else if (strlen(overlaps_file_name) > 0) {
+  if (strlen(overlaps_file_name) > 0) {
     fprintf(stderr, "Reading overlaps from afg file '%s'\n", overlaps_file_name);
     overlaps.reset(layout::ReadOverlapsAfg(reads.get(), overlaps_file));
   } else {

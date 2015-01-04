@@ -23,24 +23,9 @@ namespace layout {
   overlap::ReadSet* ReadReadsAfg(FILE *fd);
 
   /**
-   * Reads all reads from the .seq (fastq format) file.
-   */
-  overlap::ReadSet* ReadReadsSeq(char *filename);
-
-  /**
-   * Reads all reads from AMOS bank.
-   */
-  overlap::ReadSet* ReadReadsAmos(const char *bank_name);
-
-  /**
-   * Reads all overlaps form the .afg file.
+   * Reads all overlaps from the .afg file.
    */
   overlap::OverlapSet* ReadOverlapsAfg(overlap::ReadSet* read_set, FILE *fd);
-
-  /**
-   * Reads all overlaps form the AMOS bank.
-   */
-  overlap::OverlapSet* ReadOverlapsAmos(overlap::ReadSet* read_set, const char* bank_name);
 
   /**
    * Finds the n50 of the given contig set.
