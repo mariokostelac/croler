@@ -227,6 +227,11 @@ class Graph {
   void printToGraphviz(FILE* file) const;
 
   /**
+   * Deletes edges and vertices marked for removal
+   */
+  void deleteMarked();
+
+  /**
    * Removes tips and disconnected vertices from graph.
    * @mculinovic
    */
