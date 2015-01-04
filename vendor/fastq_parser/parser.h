@@ -1,1 +1,0 @@
-../../pipeline/qpid/src/parser/parser.h
