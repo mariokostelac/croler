@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -g -Wall -std=c++11 -O2 -I ./vendor -I ./src -I ./
-LDFLAGS = -lz -pthread
+LDFLAGS = -pthread
 
 VPATH=obj:bin:src:vendor
 
