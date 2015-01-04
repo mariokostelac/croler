@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [[ $# -ne 1 ]]; then
-    echo "usage: $0 <reads_file.fastq>"
+    echo "usage: $0 <reads_file.afg>"
     exit 1
 fi
 
@@ -14,13 +14,13 @@ set -e
 
 echo "OVERLAP phase"
 echo $line
-./bin/overlap -f $1 -O $TMP_OVERLAPS
+./bin/overlap $1 -o $TMP_OVERLAPS
 echo $line
 echo
 
 echo "LAYOUT phase"
 echo $line
-./bin/layout -f $1 $TMP_OVERLAPS
+./bin/layout $1 $TMP_OVERLAPS
 echo $line
 echo
 
