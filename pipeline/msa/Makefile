@@ -1,5 +1,5 @@
-INCLUDE=-I./src
-#CFLAGS=-O3 -flto --std=c++11 -Wall -Wextra -Werror -pedantic
+INCLUDE=-I./src -I./
+CFLAGS=-O3 -flto --std=c++11 -Wall -Wextra -Werror -pedantic
 CFLAGS=-O3 -flto --std=c++11
 
 CC=g++ $(CFLAGS) $(INCLUDE)
