@@ -189,7 +189,8 @@ Unitigging::BetterOverlapSetPtr Graph::extractOverlaps() {
 }
 
 void Graph::removeBubbles() {
-  fprintf(stderr, "Bubble popping\n");
+  uint32_t cnt_bubbles = 0;
+
   for (auto const& vertex: vertices_) {
     // std::shared_ptr< Vertex > vertex = getVertex(269 - 159);
     // fprintf(stderr, "Edges of vertex: %d %d\n", vertex->count_edges_B(), vertex->count_edges_E());
@@ -329,9 +330,9 @@ void Graph::removeBubbles() {
         }
 
         edlibCalcEditDistance(query, queryLength, target, targetLength,
-                      alphabetLength, -1, EDLIB_MODE_NW, false, false,
-                      &score, nullptr, nullptr, nullptr,
-                      nullptr, nullptr);
+                     alphabetLength, -1, EDLIB_MODE_NW, false, false,
+                     &score, nullptr, nullptr, nullptr,
+                     nullptr, nullptr);
 
         double diff_percentage = static_cast<double>(score) / bubble_sequences[selected_walk].length();
         if (diff_percentage > max_diff) {
@@ -360,9 +361,11 @@ void Graph::removeBubbles() {
         }
       }
 
-      // count bubbles
+      cnt_bubbles++;
     }
   }
+  deleteMarked();
+  fprintf(stderr, "Bubbles removed: %u\n", cnt_bubbles);
 }
 
 
