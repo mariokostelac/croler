@@ -314,6 +314,13 @@ void Graph::removeBubbles() {
         target[pos++] = convert_to_uchar(c);
       }
 
+      // dummy nodes for alignment
+      int *dummy_start_locations;
+      int *dummy_end_locations;
+      int dummy_num_locations;
+      unsigned char* dummy_alignment;
+      int dummy_alignment_length;
+
       for (size_t i = 0; i < bubble_sequences.size(); ++i) {
         if (i == selected_walk) continue;
         int32_t score;  // total_length_gaps + total_mismatches
@@ -331,8 +338,13 @@ void Graph::removeBubbles() {
 
         edlibCalcEditDistance(query, queryLength, target, targetLength,
                      alphabetLength, -1, EDLIB_MODE_NW, false, false,
-                     &score, nullptr, nullptr, nullptr,
-                     nullptr, nullptr);
+                     &score, &dummy_end_locations, &dummy_start_locations,
+                     &dummy_num_locations,
+                     &dummy_alignment, &dummy_alignment_length);
+
+        free(dummy_start_locations);
+        free(dummy_end_locations);
+        free(dummy_alignment);
 
         double diff_percentage = static_cast<double>(score) / bubble_sequences[selected_walk].length();
         if (diff_percentage > max_diff) {
