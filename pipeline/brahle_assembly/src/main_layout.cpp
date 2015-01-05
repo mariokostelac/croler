@@ -50,9 +50,6 @@ void setup_cmd_interface(int argc, char **argv) {
   parsero::add_option("b:", "number of bubble popping rounds",
     [] (char *option) { BUBBLE_ROUNDS = atoi(option); });
 
-  parsero::add_option("n", "disable trimming and bubble popping",
-    [] (char *option) { TRIM_ROUNDS = 0; BUBBLE_ROUNDS = 0; });
-
   parsero::add_argument("reads.afg",
     [] (char *filename) { reads_file_name = filename; });
 
