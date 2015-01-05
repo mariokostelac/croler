@@ -292,9 +292,56 @@ void Graph::removeBubbles() {
       }
       puts("Sequences generated");
 
-      BubbleWalk& walk = bubble_walks[selected_walk];
+      // prepare data for alignment
+      bool diff = false;
+      double max_diff = 0.2;  // ?? ovo mi nije sigurno
+      int32_t alphabetLength = 4;
+      int32_t targetLength = bubble_sequences[selected_walk].length();
+      int32_t score;
+      auto convert_to_uchar = [](char c) -> unsigned char {
+        switch(c) {
+          case 'A': return 0;
+          case 'T': return 1;
+          case 'G': return 2;
+          case 'C': return 3;
+        }
+      };
 
-      // ubaciti šošića
+      unsigned char target[targetLength];
+      int32_t pos = 0;
+      for (char& c: bubble_sequences[selected_walk]) {
+        target[pos++] = convert_to_uchar(c);
+      }
+
+      for (size_t i = 0; i < bubble_sequences.size(); ++i) {
+        if (i == selected_walk) continue;
+        int32_t score;  // total_length_gaps + total_mismatches
+
+        if (bubble_sequences[i].empty() || bubble_sequences[selected_walk].empty()) {
+          score = 2 * std::max(bubble_sequences[i].size(), bubble_sequences[selected_walk].size());
+        }
+
+        int32_t queryLength = bubble_sequences[i].length();
+        unsigned char query[queryLength];
+        pos = 0;
+        for (char& c:  bubble_sequences[i]) {
+          query[pos++] = convert_to_uchar(c);
+        }
+
+        edlibCalcEditDistance(query, queryLength, target, targetLength,
+                      alphabetLength, -1, EDLIB_MODE_NW, false, false,
+                      &score, nullptr, nullptr, nullptr,
+                      nullptr, nullptr);
+
+        double diff_percentage = static_cast<double>(score) / bubble_sequences[selected_walk].length();
+        if (diff_percentage > max_diff) {
+          diff = true;
+        }
+      }
+
+      if (diff) continue;
+
+      BubbleWalk& walk = bubble_walks[selected_walk];
 
       std::string selected_sequence = walk.getSequence();
       for (size_t j = 0; j < bubble_walks.size(); ++j) {
