@@ -189,7 +189,8 @@ Unitigging::BetterOverlapSetPtr Graph::extractOverlaps() {
 }
 
 void Graph::removeBubbles() {
-  fprintf(stderr, "Bubble popping\n");
+  uint32_t cnt_bubbles = 0;
+
   for (auto const& vertex: vertices_) {
     // std::shared_ptr< Vertex > vertex = getVertex(269 - 159);
     // fprintf(stderr, "Edges of vertex: %d %d\n", vertex->count_edges_B(), vertex->count_edges_E());
@@ -292,9 +293,68 @@ void Graph::removeBubbles() {
       }
       puts("Sequences generated");
 
-      BubbleWalk& walk = bubble_walks[selected_walk];
+      // prepare data for alignment
+      bool diff = false;
+      double max_diff = 0.2;  // ?? ovo mi nije sigurno
+      int32_t alphabetLength = 4;
+      int32_t targetLength = bubble_sequences[selected_walk].length();
+      int32_t score;
+      auto convert_to_uchar = [](char c) -> unsigned char {
+        switch(c) {
+          case 'A': return 0;
+          case 'T': return 1;
+          case 'G': return 2;
+          case 'C': return 3;
+        }
+      };
 
-      // ubaciti šošića
+      unsigned char target[targetLength];
+      int32_t pos = 0;
+      for (char& c: bubble_sequences[selected_walk]) {
+        target[pos++] = convert_to_uchar(c);
+      }
+
+      // dummy nodes for alignment
+      int *dummy_start_locations;
+      int *dummy_end_locations;
+      int dummy_num_locations;
+      unsigned char* dummy_alignment;
+      int dummy_alignment_length;
+
+      for (size_t i = 0; i < bubble_sequences.size(); ++i) {
+        if (i == selected_walk) continue;
+        int32_t score;  // total_length_gaps + total_mismatches
+
+        if (bubble_sequences[i].empty() || bubble_sequences[selected_walk].empty()) {
+          score = 2 * std::max(bubble_sequences[i].size(), bubble_sequences[selected_walk].size());
+        }
+
+        int32_t queryLength = bubble_sequences[i].length();
+        unsigned char query[queryLength];
+        pos = 0;
+        for (char& c:  bubble_sequences[i]) {
+          query[pos++] = convert_to_uchar(c);
+        }
+
+        edlibCalcEditDistance(query, queryLength, target, targetLength,
+                     alphabetLength, -1, EDLIB_MODE_NW, false, false,
+                     &score, &dummy_end_locations, &dummy_start_locations,
+                     &dummy_num_locations,
+                     &dummy_alignment, &dummy_alignment_length);
+
+        free(dummy_start_locations);
+        free(dummy_end_locations);
+        free(dummy_alignment);
+
+        double diff_percentage = static_cast<double>(score) / bubble_sequences[selected_walk].length();
+        if (diff_percentage > max_diff) {
+          diff = true;
+        }
+      }
+
+      if (diff) continue;
+
+      BubbleWalk& walk = bubble_walks[selected_walk];
 
       std::string selected_sequence = walk.getSequence();
       for (size_t j = 0; j < bubble_walks.size(); ++j) {
@@ -313,9 +373,11 @@ void Graph::removeBubbles() {
         }
       }
 
-      // count bubbles
+      cnt_bubbles++;
     }
   }
+  deleteMarked();
+  fprintf(stderr, "Bubbles removed: %u\n", cnt_bubbles);
 }
 
 

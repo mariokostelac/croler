@@ -6,6 +6,8 @@
 #include <layout/string_graph.h>
 #include <layout/contig.h>
 #include <layout/better_read.h>
+#include <lib/parsero/parsero.h>
+
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
@@ -22,6 +24,11 @@ using std::string;
 using std::cout;
 
 const uint32_t EXPECT_READS = 1 << 10;
+uint32_t TRIM_ROUNDS = 1;
+uint32_t BUBBLE_ROUNDS = 1;
+
+char *reads_file_name = nullptr;
+char *overlaps_file_name = nullptr;
 
 void usage(char *argv[]) {
   fprintf(
@@ -35,16 +42,31 @@ void usage(char *argv[]) {
   exit(1);
 }
 
+void setup_cmd_interface(int argc, char **argv) {
+
+  parsero::add_option("t:", "number of trimming rounds",
+    [] (char *option) { TRIM_ROUNDS = atoi(option); });
+
+  parsero::add_option("b:", "number of bubble popping rounds",
+    [] (char *option) { BUBBLE_ROUNDS = atoi(option); });
+
+  parsero::add_argument("reads.afg",
+    [] (char *filename) { reads_file_name = filename; });
+
+  parsero::add_argument("overlaps.afg",
+    [] (char *filename) { overlaps_file_name = filename; });
+
+  parsero::parse(argc, argv);
+}
+
 int main(int argc, char *argv[]) {
-  if (argc != 3) {
-    usage(argv);
+
+  setup_cmd_interface(argc, argv);
+
+  if (reads_file_name == nullptr || overlaps_file_name == nullptr) {
+    parsero::help(argv[0]);
+    exit(1);
   }
-
-  char reads_file_name[1024] = {0};
-  char overlaps_file_name[1024] = {0};
-
-  snprintf(reads_file_name, sizeof(reads_file_name), "%s", argv[1]);
-  snprintf(overlaps_file_name, sizeof(overlaps_file_name), "%s", argv[2]);
 
   FILE *overlaps_file = nullptr;
   FILE *graphviz_file = nullptr;
@@ -133,20 +155,26 @@ int main(int argc, char *argv[]) {
   // trimming
   // @mculinovic
   const uint32_t trimSeqLenThreshold = 300;
-  g.trim(trimSeqLenThreshold);
-  // g.removeBubbles();
+
+  while (TRIM_ROUNDS-- > 0) {
+    g.trim(trimSeqLenThreshold);
+  }
+
+  while (BUBBLE_ROUNDS-- > 0) {
+    g.removeBubbles();
+  }
 
   typedef std::shared_ptr< layout::BetterOverlapSet > BetterOverlapSetPtr;
   overlap::ReadSet* read_set = g.extractReads();
   BetterOverlapSetPtr overlap_set = g.extractOverlaps();
 
-  fprintf(stderr, "Number of reads after trimmming: %d\n", read_set->size());
-  fprintf(stderr, "Number of overlaps after trimming: %d\n", overlap_set->size());
+  fprintf(stderr, "Number of reads after graph simplification: %d\n", read_set->size());
+  fprintf(stderr, "Number of overlaps after graph simplification: %d\n", overlap_set->size());
 
   u->makeContigs(overlap_set, read_set);
 
   n50_value = layout::n50(u->contigs());
-  fprintf(stderr, "After trimming n50 = %d\n", n50_value);
+  fprintf(stderr, "After simplification n50 = %d\n", n50_value);
 
   // create dotgraph after trimming
   {
