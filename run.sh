@@ -7,8 +7,16 @@ fi
 
 line="---------------------------------------------------------------"
 
-TMP_OVERLAPS=overlaps.afg
-TMP_LAYOUT=layout.afg
+BASE=$(basename $1 .afg)
+
+TMP_OVERLAPS=${BASE}_overlaps.afg
+TMP_LAYOUT=${BASE}_layout.afg
+TMP_CONSENSUS=${BASE}_consensus.fasta
+
+echo "files"
+echo $TMP_OVERLAPS
+echo $TMP_LAYOUT
+echo $TMP_CONSENSUS
 
 set -e
 
@@ -21,10 +29,12 @@ echo
 echo "LAYOUT phase"
 echo $line
 ./bin/layout $1 $TMP_OVERLAPS
+mv layout.afg $TMP_LAYOUT
 echo $line
 echo
 
 echo "CONSENSUS phase"
 echo $line
 ./bin/consensus $1 $TMP_LAYOUT
+mv consensus.fasta $TMP_CONSENSUS
 echo $line
