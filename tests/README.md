@@ -37,6 +37,7 @@ of `$PATH` var.
 
 Results
 -------
-All results are calculated and written with 20ced2c839c59469cbcaa3a576f49c0c1407b120, all default params.
+All results are calculated and written with [v1.0RC1]
+(https://github.com/mariokostelac/croler/archive/v1.0RC1.zip), all default params.
 
 #TODO
