@@ -40,20 +40,20 @@ echo
 echo "running OVERLAP phase..."
 echo "OVERLAP" >> $LOG_FILE
 echo $line >> $LOG_FILE
-time ./bin/overlap $1 -o $TMP_OVERLAPS &>> $LOG_FILE
+time ./bin/croler_overlap $1 -o $TMP_OVERLAPS &>> $LOG_FILE
 echo $line >> $LOG_FILE
 
 echo "running LAYOUT phase..."
 echo "LAYOUT" >> $LOG_FILE
 echo $line >> $LOG_FILE
-time ./bin/layout $1 $TMP_OVERLAPS &>> $LOG_FILE
+time ./bin/croler_layout $1 $TMP_OVERLAPS &>> $LOG_FILE
 mv layout.afg $TMP_LAYOUT
 echo $line >> $LOG_FILE
 
 echo "running CONSENSUS phase..."
 echo "CONSENSUS" >> $LOG_FILE
 echo $line >> $LOG_FILE
-time ./bin/consensus $1 $TMP_LAYOUT &>> $LOG_FILE
+time ./bin/croler_consensus $1 $TMP_LAYOUT &>> $LOG_FILE
 mv consensus.fasta $TMP_CONSENSUS
 echo $line >> $LOG_FILE
 
