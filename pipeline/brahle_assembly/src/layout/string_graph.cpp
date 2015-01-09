@@ -182,7 +182,12 @@ Unitigging::BetterOverlapSetPtr Graph::extractOverlaps() {
   return overlap_set_;
 }
 
-void Graph::removeBubbles() {
+void Graph::removeBubbles(uint32_t max_nodes, uint64_t max_distance,
+                     uint32_t max_walks, double max_diff) {
+  MAX_NODES = max_nodes;
+  MAX_DISTANCE = max_distance;
+  MAX_WALKS = max_walks;
+  MAX_DIFF = max_diff;
   fprintf(stderr, "Bubble popping started!\n");
   fprintf(stderr, "Maximum number of walks in bubble: %u\n", MAX_WALKS);
   fprintf(stderr, "Maximum nodes bfs: %u\n", MAX_NODES);

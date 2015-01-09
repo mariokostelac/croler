@@ -138,14 +138,14 @@ class Graph {
   // queues for bubble popping
   std::deque< Node* > opened_queue;
   std::deque< Node* > closed_queue;
-  // maximum number of bfs nodes in bubble
-  static const uint32_t MAX_NODES = 500;
-  // maximum distance from starting vertex in bubble
-  static const uint64_t MAX_DISTANCE = 5000;
-  // maximum number of variation walks
-  static const uint32_t MAX_WALKS = 10;
-  // maximum diff between walk sequences
-  double MAX_DIFF = 0.2;  // ?? ovo mi nije sigurno
+// maximum number of bfs nodes in bubble
+uint32_t MAX_NODES;
+// maximum walk sequence length in bubble
+uint64_t MAX_DISTANCE;
+// maximum number of bubble walks
+uint32_t MAX_WALKS;
+// maximum diff between walk sequences after alignment
+double MAX_DIFF;
 
   overlap::ReadSet* read_set_;
   typedef std::shared_ptr< BetterOverlapSet > BetterOverlapSetPtr;
@@ -257,7 +257,8 @@ class Graph {
    * in jts String graph assembler: https://github.com/jts/sga
    * @mculinovic
    */
-  void removeBubbles();
+  void removeBubbles(uint32_t max_nodes, uint64_t max_distance,
+                     uint32_t max_walks, double max_diff);
 
 
  private:
