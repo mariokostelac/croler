@@ -118,11 +118,8 @@ void Graph::trim(const uint32_t trimSeqLenThreshold) {
   uint32_t disconnected_ctr = 0;
   uint32_t tips_ctr = 0;
 
-  // fprintf(stderr, "vertices: %d\n", vertices_.size());
-  // fprintf(stderr, "map: %d\n", id_to_vertex_map_.size());
-  // fprintf(stderr, "edges: %d\n", edges_.size());
-  fprintf(stderr, "Trimmming threshold: %d\n", trimSeqLenThreshold);
-
+  fprintf(stderr, "Trimming started!\n");
+  fprintf(stderr, "Trimmming read length threshold: %d\n", trimSeqLenThreshold);
 
   for (auto const& vertex: vertices_) {
 
@@ -149,10 +146,7 @@ void Graph::trim(const uint32_t trimSeqLenThreshold) {
     deleteMarked();
   }
 
-  // fprintf(stderr, "vertices: %d\n", vertices_.size());
-  // fprintf(stderr, "map: %d\n", id_to_vertex_map_.size());
-  // fprintf(stderr, "edges: %d\n", edges_.size());
-
+  fprintf(stderr, "Triming finished!\n");
   fprintf(stderr, "Removed %d tips and %d disconnected vertices\n",
                    tips_ctr, disconnected_ctr);
 }
@@ -189,11 +183,15 @@ Unitigging::BetterOverlapSetPtr Graph::extractOverlaps() {
 }
 
 void Graph::removeBubbles() {
+  fprintf(stderr, "Bubble popping started!\n");
+  fprintf(stderr, "Maximum number of walks in bubble: %u\n", MAX_WALKS);
+  fprintf(stderr, "Maximum nodes bfs: %u\n", MAX_NODES);
+  fprintf(stderr, "Maximum walk distance: %lu\n", MAX_DISTANCE);
+  fprintf(stderr, "Max diff in walk sequences: %.2f\n", MAX_DIFF);
   uint32_t cnt_bubbles = 0;
 
   for (auto const& vertex: vertices_) {
-    // std::shared_ptr< Vertex > vertex = getVertex(269 - 159);
-    // fprintf(stderr, "Edges of vertex: %d %d\n", vertex->count_edges_B(), vertex->count_edges_E());
+
     // skip vertices already marked for removal
     if (vertex->isMarked()) continue; // continue;
 
@@ -218,7 +216,6 @@ void Graph::removeBubbles() {
       getBubbleWalks(vertex, dir, bubble_walks);
 
       if (bubble_walks.size() == 0) continue; // continue;
-      else fprintf(stderr, "Bubble walks: %d\n", bubble_walks.size());
 
       uint32_t selected_walk = -1;
       double selected_coverage = 0;
@@ -230,8 +227,9 @@ void Graph::removeBubbles() {
 
       size_t i = 0;
       for (auto bubble_walk: bubble_walks) {
+        // transitive bubble - bubble where one walk is represented by
+        // only one edge/overlap
         if (bubble_walk.Edges().size() <= 1) {
-          puts("Transitive bubble");
           is_transitive = true;
           break;
         }
@@ -245,7 +243,6 @@ void Graph::removeBubbles() {
           selected_walk = i;
           selected_coverage = curr_coverage;
         }
-        fprintf(stderr, "Coverage: %d\n", curr_coverage);
 
         std::shared_ptr< Edge > first = bubble_walk.Edges().front();
         std::shared_ptr< Edge > last = bubble_walk.Edges().back();
@@ -261,8 +258,10 @@ void Graph::removeBubbles() {
       }
 
       // bubble is transitive so it's not valid for removal
-      if (is_transitive)
+      if (is_transitive) {
+        fprintf(stderr, "Bubble removal declined: transitive bubble!\n");
         continue;
+      }
 
       // extract sequences from walks
       std::vector< std::string > bubble_sequences;
@@ -291,11 +290,9 @@ void Graph::removeBubbles() {
         }
         bubble_sequences.emplace_back(matching_sequence);
       }
-      puts("Sequences generated");
 
       // prepare data for alignment
       bool diff = false;
-      double max_diff = 0.2;  // ?? ovo mi nije sigurno
       int32_t alphabetLength = 4;
       int32_t targetLength = bubble_sequences[selected_walk].length();
       int32_t score;
@@ -347,13 +344,17 @@ void Graph::removeBubbles() {
         free(dummy_alignment);
 
         double diff_percentage = static_cast<double>(score) / bubble_sequences[selected_walk].length();
-        if (diff_percentage > max_diff) {
+        if (diff_percentage > MAX_DIFF) {
           diff = true;
         }
       }
 
-      if (diff) continue;
+      if (diff) {
+        fprintf(stderr, "Bubble removal declined: bubble walks sequences not similar!\n");
+        continue;
+      }
 
+      fprintf(stderr, "Removing bubble starting in vertex with read id: #%u\n", vertex->id());
       BubbleWalk& walk = bubble_walks[selected_walk];
 
       std::string selected_sequence = walk.getSequence();
@@ -361,12 +362,10 @@ void Graph::removeBubbles() {
         if (j == selected_walk) continue;
         BubbleWalk& curr_walk = bubble_walks[j];
         auto &walk_edges = curr_walk.Edges();
-        // puts("Novi walk");
         for (size_t k = 0; k < walk_edges.size() - 1; ++k) {
           uint32_t id = walk_edges[k]->B()->id();
-          // fprintf(stderr, "Brid: %d %d\n", walk_edges[k]->A()->id() + 159, walk_edges[k]->B()->id() + 159);
           if (!walk.containsRead(id)) {
-            fprintf(stderr, "Mark vertex id: %d\n", id);
+            fprintf(stderr, "Marking for removal vertex with read id: #%u\n", id);
             getVertex(id)->mark();
             getVertex(id)->markEdges();
           }
@@ -377,6 +376,7 @@ void Graph::removeBubbles() {
     }
   }
   deleteMarked();
+  fprintf(stderr, "Bubble popping finished!\n");
   fprintf(stderr, "Bubbles removed: %u\n", cnt_bubbles);
 }
 
@@ -384,11 +384,11 @@ void Graph::removeBubbles() {
 void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
                             size_t dir,
                             std::vector<BubbleWalk> &bubble_walks) {
-  puts("Get Bubble Walks");
   uint32_t reads_cnt = 0;
   uint64_t distance = 0;
+  opened_queue.clear();
+  closed_queue.clear();
 
-  // puts("BFS");
   // breadth-first search graph
   Node *root = new Node(vertex_root, dir, nullptr, nullptr, 0);
   opened_queue.emplace_back(root);
@@ -418,8 +418,7 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
     opened_queue = expand_queue;
     std::shared_ptr<Vertex> end_vertex;
     if (bubbleFound(root, &end_vertex)) {
-      puts("Bubble found");
-      fprintf(stderr, "End vertex id: %d\n", end_vertex->id() + 159);
+      fprintf(stderr, "Found bubble with start vertex id #%u and end vertex id: %u\n", vertex_root->id(), end_vertex->id());
       generateBubbleWalks(vertex_root, end_vertex, bubble_walks);
       break;
     }
@@ -432,8 +431,6 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
     return;
   }
 
-  puts("Check for orientation");
-
   // check that last vertex has same orientation for all walks
   // it's possible that last direction is not the same because of
   // overlap type EE - innnie
@@ -444,6 +441,7 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
   for (size_t i = 0; i < bubble_walks.size(); ++i) {
     last_edge = bubble_walks[i].Edges().back();
     if (last_edge->label().overlap()->Suf(last_edge->B()->id()) != last_direction) {
+      fprintf(stderr, "Bubble removal declined: directions of end vertex overlaps not same!\n");
       bubble_walks.clear();
       return;
     }
@@ -471,10 +469,9 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
     }
 
     for (auto const& edge: v_edges) {
-      // fprintf(stderr, "Edge: %d %d\n", edge->A()->id() + 159, edge->B()->id() + 159);
       if (vertices_ids.find(edge->B()->id()) == vertices_ids.end()) {
         bubble_walks.clear();
-        puts("All vertices not in bubble vertices set");
+        fprintf(stderr, "Bubble removal declined: some vertices have overlaps with vertices which aren't in bubble\n");
         return;
       }
     }

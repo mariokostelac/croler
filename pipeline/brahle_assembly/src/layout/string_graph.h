@@ -144,6 +144,8 @@ class Graph {
   static const uint64_t MAX_DISTANCE = 5000;
   // maximum number of variation walks
   static const uint32_t MAX_WALKS = 10;
+  // maximum diff between walk sequences
+  double MAX_DIFF = 0.2;  // ?? ovo mi nije sigurno
 
   overlap::ReadSet* read_set_;
   typedef std::shared_ptr< BetterOverlapSet > BetterOverlapSetPtr;
