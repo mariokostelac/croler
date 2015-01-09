@@ -8,9 +8,9 @@ prepare_bin:
 	@test -d bin || mkdir bin
 
 link_bin:
-	ln -s ../pipeline/qpid/bin/overlap bin/overlap
-	ln -s ../pipeline/brahle_assembly/bin/main_layout bin/layout
-	ln -s ../pipeline/msa/bin/msa bin/consensus
+	ln -s ../pipeline/qpid/bin/overlap bin/croler_overlap
+	ln -s ../pipeline/brahle_assembly/bin/main_layout bin/croler_layout
+	ln -s ../pipeline/msa/bin/msa bin/croler_consensus
 
 clean:
 	@if [ -d bin ]; then rm -r bin; fi;
