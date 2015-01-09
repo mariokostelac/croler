@@ -37,4 +37,6 @@ of `$PATH` var.
 
 Results
 -------
+All results are calculated and written with 20ced2c839c59469cbcaa3a576f49c0c1407b120, all default params.
+
 #TODO
