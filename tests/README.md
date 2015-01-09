@@ -21,7 +21,7 @@ It will also trigger minimus on the same input to make comparison
 easier.
 
 Example:
-```
+```bash
 cd tests/o/influenza-A/
 ../run.sh ../../test_data/influenza-A/influenza-A.afg
 ```
