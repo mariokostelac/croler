@@ -23,7 +23,7 @@ easier.
 Example:
 ```bash
 cd tests/o/influenza-A/
-../run.sh ../../test_data/influenza-A/influenza-A.afg
+../run.sh ../../../test_data/influenza-A/influenza-A.afg
 ```
 will run **o** pipeline and **minimus** on the reads of influenza-A
 genome. Running such a script will produce files **contigs.we** and
