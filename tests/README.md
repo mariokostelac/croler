@@ -2,7 +2,7 @@ Comparison tests
 ================
 
 This directory contains comparions tests between
-[minimus](https://www.google.com/search?q=amos+mimimus&ie=utf-8&oe=utf-8&aq=t&gws_rd=ssl)
+[minimus](http://amos.sourceforge.net/wiki/index.php/Minimus)
 (one of AMOS
 assemblers) and `croler`.
 
