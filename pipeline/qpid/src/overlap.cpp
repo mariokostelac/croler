@@ -266,7 +266,11 @@ int main(int argc, char **argv) {
     int reads_size = read_from_afg(reads, INPUT_FILE);
     fprintf(stderr, "* Read %d strings...\n", reads_size);
 
+    fprintf(stderr, "* Alignment band radius: %d\n", ALIGNMENT_BAND_RADIUS);
+    fprintf(stderr, "* Number of threads: %d\n", THREADS_NUM);
     fprintf(stderr, "* Maximum error rate: %lf\n", MAXIMUM_ERROR_RATE);
+    fprintf(stderr, "* Merge radius: %d\n", MERGE_RADIUS);
+    fprintf(stderr, "* Offset wiggle: %d\n", OFFSET_WIGGLE);
 
     Timer mtimer("calculating minimizers");
     // create a bank of all minimizers so finding appropriate read pairs could be efficient.
