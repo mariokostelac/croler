@@ -67,7 +67,7 @@ void setup_cmd_interface(int argc, char **argv) {
   parsero::add_option("n:", "maximum number of nodes during bfs in bubble popping",
     [] (char *option) { MAX_NODES = atoi(option); });
 
-  parsero::add_option("d:", "maximum walk sequence in length in bubble",
+  parsero::add_option("d:", "maximum walk sequence length in bubble",
     [] (char *option) { MAX_DISTANCE = atoi(option); });
 
   parsero::add_option("w:", "maximum number of walks in bubble",
