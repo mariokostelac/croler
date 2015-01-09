@@ -27,7 +27,7 @@ cd tests/o/influenza-A/
 ```
 will run **o** pipeline and **minimus** on the reads of influenza-A
 genome. Running such a script will produce files **contigs.we** and
-**contigs.minimu**.
+**contigs.minimus**.
 
 Comparing these two could be useful for observing how good is croler
 overlapper.
