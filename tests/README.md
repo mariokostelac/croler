@@ -1,0 +1,40 @@
+Comparison tests
+================
+
+This directory contains comparions tests between
+[minimus](https://www.google.com/search?q=amos+mimimus&ie=utf-8&oe=utf-8&aq=t&gws_rd=ssl)
+(one of AMOS
+assemblers) and `croler`.
+
+Each directory represents particular pipeline
+
+- **o** stands for `croler overlap | minimus layout | minimus consensus`
+- **ol** stands for `croler overlap | croler layout | minimus consensus`
+- **olc** stands for `croler overlap | croler layout | croler consensus`
+
+Running
+-------
+Each directory contains `run.sh` script that will run particular
+pipeline against given file (*reads in .afg format*).
+
+It will also trigger minimus on the same input to make comparison
+easier.
+
+Example:
+```
+cd tests/o/influenza-A/
+../run.sh ../../test_data/influenza-A/influenza-A.afg
+```
+will run **o** pipeline and **minimus** on the reads of influenza-A
+genome. Running such a script will produce files **contigs.we** and
+**contigs.minimu**.
+
+Comparing these two could be useful for observing how good is croler
+overlapper.
+
+**NOTE**: `run.sh` assumes that amos and croler bin directories are part
+of `$PATH` var.
+
+Results
+-------
+#TODO
