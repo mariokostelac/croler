@@ -31,7 +31,7 @@ Usage is pretty simple, just hit run `./bin/overlap` and you'll get
     -o output file
 
 For explanation of each argument meaning, proceed to
-[algorithm](#algorithm) section
+[algorithm](#algorithm) section (after explanation of the core algorithm).
 
 ## Input/output formats
 *qpid* reads sequence reads in *.afg* format and outputs overlaps in the
