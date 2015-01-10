@@ -32,7 +32,10 @@ refers to which stage.
 
 Running
 -------
-*croler* assembly can be run multiple ways.
+*croler* supports input in `.afg`
+([AMOS](http://amos.sourceforge.net/wiki/index.php/Message_Types)) format.
+
+It can be run multiple ways.
 The simplest way is to use `run.sh` script like
 
     ./run.sh <reads.afg>
@@ -43,9 +46,6 @@ such as `{reads}_overlaps.afg`, `{reads}_layout.afg` and various `.dot`
 graphs created by layout phase.
 
 *{reads} refers to a prefix of reads filename*
-
-Currently, *croler* supports input in `.afg`
-([AMOS](http://amos.sourceforge.net/wiki/index.php/Message_Types)) format.
 
 **Note**: It is the simplest way to run the assembly, but running each
 phase separetely is more flexible and allows adjusting parameters to
