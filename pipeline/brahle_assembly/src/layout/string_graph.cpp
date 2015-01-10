@@ -450,14 +450,10 @@ void Graph::getBubbleWalks(const std::shared_ptr<Vertex>& vertex_root,
       bubble_walks.clear();
       return;
     }
-    // add all vertices from bubble to set vertices_ids
-    std::vector<uint32_t> walk_vertices;
-    walk_vertices.emplace_back(vertex_root->id());
+    // add all vertices from walk to set vertices_ids
+    vertices_ids.insert(vertex_root->id());
     for (auto const& edge: bubble_walks[i].Edges()) {
-      walk_vertices.emplace_back(edge->B()->id());
-    }
-    for (auto id: walk_vertices) {
-      vertices_ids.insert(id);
+      vertices_ids.insert(edge->B()->id());
     }
   }
 
