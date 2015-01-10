@@ -218,35 +218,38 @@ void find_overlaps(vector<Read>& reads, Minimizer *minimizer, int wiggle, int me
 
 void setup_cmd_interface(int argc, char **argv) {
 
-    parsero::add_option("t:", "number of threads",
-        [] (char *option) { THREADS_NUM = atoi(option);
-    });
+  parsero::set_header("qpid if read overlapper, often used as a part of croler genome assembler.");
+  parsero::set_footer("Found a bug? Drop an email to mario.kostelac@gmail.com.");
 
-    parsero::add_option("a:", "alignment band radius",
-        [] (char *option) { ALIGNMENT_BAND_RADIUS = atoi(option); }
-    );
+  parsero::add_option("t:", "number of threads",
+      [] (char *option) { THREADS_NUM = atoi(option);
+      });
 
-    parsero::add_option("w:", "offset wiggle",
-        [] (char *option) { OFFSET_WIGGLE = atoi(option); }
-    );
+  parsero::add_option("a:", "alignment band radius",
+      [] (char *option) { ALIGNMENT_BAND_RADIUS = atoi(option); }
+      );
 
-    parsero::add_option("r:", "merge radius",
-        [] (char *option) { MERGE_RADIUS = atoi(option); }
-    );
+  parsero::add_option("w:", "offset wiggle",
+      [] (char *option) { OFFSET_WIGGLE = atoi(option); }
+      );
 
-    parsero::add_option("e:", "maximum error rate",
-        [] (char *option) { sscanf(option, "%lf", &MAXIMUM_ERROR_RATE); }
-    );
+  parsero::add_option("r:", "merge radius",
+      [] (char *option) { MERGE_RADIUS = atoi(option); }
+      );
 
-    parsero::add_option("o:", "output file",
-        [] (char *filename) { OUTPUT_FD = fopen(filename, "w"); }
-    );
+  parsero::add_option("e:", "maximum error rate",
+      [] (char *option) { sscanf(option, "%lf", &MAXIMUM_ERROR_RATE); }
+      );
 
-    parsero::add_argument("reads.afg",
-        [] (char *filename) { INPUT_FILE = filename; }
-    );
+  parsero::add_option("o:", "output file; if omitted, goes to stdout",
+      [] (char *filename) { OUTPUT_FD = fopen(filename, "w"); }
+      );
 
-    parsero::parse(argc, argv);
+  parsero::add_argument("reads.afg",
+      [] (char *filename) { INPUT_FILE = filename; }
+      );
+
+  parsero::parse(argc, argv);
 }
 
 int main(int argc, char **argv) {
