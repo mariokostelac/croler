@@ -11,13 +11,11 @@ As most OLC assemblers do, *croler* consists of three different phases:
 
 *[for details follow the links above].*
 
-Requirements
-------------
+## Requirements
 - gcc (4.7.2 on debian will do the job)
 - make
 
-Installation
------------
+## Installation
 Change the directory where the project is cloned and make sure that
 following commands flow through your command line
 
@@ -30,8 +28,7 @@ directory will contain symlinks to binaries of different stages:
 We think that names are verbose enough to not explain it which binary
 refers to which stage.
 
-Running
--------
+## Running
 *croler* reads input in `.afg`
 ([AMOS](http://amos.sourceforge.net/wiki/index.php/Message_Types)) format.
 
@@ -52,12 +49,10 @@ phase separetely is more flexible and allows adjusting parameters to
 your test data. We really encourage you to explore the running options
 of each phase.
 
-Results
--------
+## Results
 Jump to [tests](tests/README.md).
 
-Contributors
-------------
+## Contributors
 - Bruno Rahle
 - Anton Grbin
 - Mario Kostelac (mario.kostelac@gmail.com)
