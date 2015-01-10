@@ -56,7 +56,7 @@ namespace parsero {
         }
 
         if (footer.length() > 0) {
-            fprintf(stderr, "%s\n\n", footer.c_str());
+            fprintf(stderr, "\n%s\n", footer.c_str());
         }
 
         fprintf(stderr, "\n");
