@@ -44,6 +44,9 @@ graphs created by layout phase.
 
 *{reads} refers to a prefix of reads filename*
 
+Currently, *croler* supports input in `.afg`
+([AMOS](http://amos.sourceforge.net/wiki/index.php/Message_Types)) format.
+
 **Note**: It is the simplest way to run the assembly, but running each
 phase separetely is more flexible and allows adjusting parameters to
 your test data. We really encourage you to explore the running options
