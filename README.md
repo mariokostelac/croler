@@ -32,7 +32,7 @@ refers to which stage.
 
 Running
 -------
-*croler* supports input in `.afg`
+*croler* reads input in `.afg`
 ([AMOS](http://amos.sourceforge.net/wiki/index.php/Message_Types)) format.
 
 It can be run multiple ways.
