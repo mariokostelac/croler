@@ -8,10 +8,10 @@ VPATH=src:src/layout:src/overlap:src/test:bin
 # but *.hpp files exists. it means that they contain template
 # implementation and everything must be recompiled when
 # they are changed.
-HPP=util.h
+HPP=
 
-OBJ=fm_index.o overlap.o better_overlap.o better_read.o read.o sort.o suffix_array.o suffix_filter.o unitigging.o util.o union_find.o contig.o layout_utils.o vertex.o string_graph.o label.o bubble_walk.o node.o
-OBJ_SPECIAL=sais.o edlib.o
+OBJ=overlap.o better_overlap.o better_read.o read.o unitigging.o union_find.o contig.o layout_utils.o vertex.o string_graph.o label.o bubble_walk.o node.o
+OBJ_SPECIAL=edlib.o
 ALL_OBJ=$(OBJ) $(OBJ_SPECIAL)
 
 EXE=main_layout
