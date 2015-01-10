@@ -25,7 +25,18 @@ using std::cout;
 
 const uint32_t EXPECT_READS = 1 << 10;
 uint32_t TRIM_ROUNDS = 1;
+// trimming read length threshold
+uint32_t READ_LEN_THRESHOLD = 300;
+
 uint32_t BUBBLE_ROUNDS = 1;
+// maximum number of bfs nodes in bubble
+uint32_t MAX_NODES = 500;
+// maximum walk sequence length in bubble
+uint64_t MAX_DISTANCE = 5000;
+// maximum number of bubble walks
+uint32_t MAX_WALKS = 10;
+// maximum diff between walk sequences after alignment
+double MAX_DIFF = 0.2;
 
 char *reads_file_name = nullptr;
 char *overlaps_file_name = nullptr;
@@ -49,6 +60,21 @@ void setup_cmd_interface(int argc, char **argv) {
 
   parsero::add_option("b:", "number of bubble popping rounds",
     [] (char *option) { BUBBLE_ROUNDS = atoi(option); });
+
+  parsero::add_option("h:", "trimming read length threshold",
+    [] (char *option) { READ_LEN_THRESHOLD = atoi(option); });
+
+  parsero::add_option("n:", "maximum number of nodes during bfs in bubble popping",
+    [] (char *option) { MAX_NODES = atoi(option); });
+
+  parsero::add_option("d:", "maximum walk sequence length in bubble",
+    [] (char *option) { MAX_DISTANCE = atoi(option); });
+
+  parsero::add_option("w:", "maximum number of walks in bubble",
+    [] (char *option) { MAX_WALKS = atoi(option); });
+
+  parsero::add_option("a:", "maximum diff between aligned bubble walk sequences",
+    [] (char *option) { MAX_DIFF = atof(option); });
 
   parsero::add_argument("reads.afg",
     [] (char *filename) { reads_file_name = filename; });
@@ -152,16 +178,15 @@ int main(int argc, char *argv[]) {
 
   g.printToGraphviz(graphviz_file);
 
-  // trimming
+  // simplification
   // @mculinovic
-  const uint32_t trimSeqLenThreshold = 300;
 
   while (TRIM_ROUNDS-- > 0) {
-    g.trim(trimSeqLenThreshold);
+    g.trim(READ_LEN_THRESHOLD);
   }
 
   while (BUBBLE_ROUNDS-- > 0) {
-    g.removeBubbles();
+    g.removeBubbles(MAX_NODES, MAX_DISTANCE, MAX_WALKS, MAX_DIFF);
   }
 
   typedef std::shared_ptr< layout::BetterOverlapSet > BetterOverlapSetPtr;
