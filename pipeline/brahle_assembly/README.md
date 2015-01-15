@@ -39,11 +39,12 @@ same manner, in *.afg*.
 Details about that format can be found on [AMOS
 wiki](http://sourceforge.net/apps/mediawiki/amos/index.php?title=Message_Types#Overlap_t_:_Universal_t)
 
+**Note**: you need to know what types of overlaps you're handling, so check [overlap types](http://sourceforge.net/p/amos/mailman/message/19965222/).
+As *qpid* does, *croler_layout* handles only overlaps of type normal and innie. Behaviour when giving other overlap types on input is undefined.
+
 ## Algorithm
 
-First, you need to know what types of overlaps you're handling, so check [overlap types](http://sourceforge.net/p/amos/mailman/message/19965222/). As in *minimus*, *croler_layout* handles only overlaps of type normal and innie.
-
-Second thing you need to know, what is *String graph*. You can read section 2.3. from paper [Efficient construction of an assembly string graph using the FM-index](http://bioinformatics.oxfordjournals.org/content/26/12/i367.full.pdf+html) by Simpson and Darbin, but i will also try to put it simple here.
+A thing you should know about is *String graph*. You can read section 2.3. from paper [Efficient construction of an assembly string graph using the FM-index](http://bioinformatics.oxfordjournals.org/content/26/12/i367.full.pdf+html) by Simpson and Darbin, but i will also try to put it simple here.
 
 Let's suppose you have 3 reads (example from mentioned paper):
 ```
