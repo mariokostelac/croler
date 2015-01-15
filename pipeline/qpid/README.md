@@ -40,6 +40,9 @@ same manner, in *.afg*.
 Details about that format can be found on [AMOS
 wiki](http://sourceforge.net/apps/mediawiki/amos/index.php?title=Message_Types#Overlap_t_:_Universal_t)
 
+**Note**: qpid outputs just *Normal* and *Innie* overlap types (all
+other types can be transformed to these two).
+
 ## Algorithm
 In the first phase it uses
 [minimizers](http://bioinformatics.oxfordjournals.org/content/20/18/3363.long)
