@@ -70,4 +70,4 @@ However, lengths of top 10 contigs are showed in the table below:
 | 10 | 448    | 491     |
 
 Looking at lengths of all contigs shows that *minimus* finds many contigs made of ~200b (about length of one read).
-It is completely reasonable that *croler* does not find these contigs because trimming and removing containments eliminates these contigs during layout phase.
+It is completely reasonable that *croler* does not find these contigs because trimming and removing containments eliminate these contigs during layout phase.
