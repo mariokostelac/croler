@@ -40,4 +40,23 @@ Results
 All results are calculated and written with [v1.0RC1]
 (https://github.com/mariokostelac/croler/archive/v1.0RC1.zip), all default params.
 
-#TODO
+| # | set name                    | set size (reads) | contigs number
+(croler) | contigs number (minimus) | longest contig (croler) | longest
+contig (minimus) | 
+|---|-----------------------------|------------------|-------------------------|--------------------------|-------------------------|--------------------------| 
+| 1 | influenza-A                 | 151              | 6
+| 6                        | 2397b                   | 2343b
+| 
+| 2 | zgene                       | 153              | 16
+| 16                       | 1960b                   | 1945b
+| 
+| 3 | HIV (NIBSC4-5_S13_L001_R_1) | 54334            | 148
+| 404                      | 2043b                   | 2017b
+| 
+
+
+Comparing results obtained from running *minimus* and *croler* on
+*zgene* and *influenza-A* reads shows that results are very similiar.
+Comparing performance on these cases does not make much sense because
+assembling these genomes lasts for < 1s.
+
