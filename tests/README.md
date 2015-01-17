@@ -53,3 +53,21 @@ Comparing results obtained from running *minimus* and *croler* on
 Comparing performance on these cases does not make much sense because
 assembling these genomes lasts for < 1s.
 
+It is easy to notice that difference between assembled HIV contigs is singificant (404 against 148).
+However, lengths of top 10 contigs are showed in the table below:
+
+| #  | croler | minimus |
+|----|--------|---------|
+| 1  | 2043   | 2017    |
+| 2  | 1339   | 1132    |
+| 3  | 768    | 628     |
+| 4  | 618    | 606     |
+| 5  | 503    | 519     |
+| 6  | 502    | 517     |
+| 7  | 484    | 505     |
+| 8  | 466    | 497     |
+| 9  | 462    | 494     |
+| 10 | 448    | 491     |
+
+Looking at lengths of all contigs shows that *minimus* finds many contigs made of ~200b (about length of one read).
+It is completely reasonable that *croler* does not find these contigs because trimming and removing containments eliminates these contigs during layout phase.
