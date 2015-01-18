@@ -74,13 +74,11 @@ It is completely reasonable that *croler* does not find these contigs because tr
 
 Running [blasr](https://github.com/PacificBiosciences/blasr) with default parameters and visualising results with [IGV](http://www.broadinstitute.org/igv/) gives us the picture shown below.
 
-[picture]
+![IGV visualisations of aligned contigs from minimus and croler](/images/hiv_croler_minimus.png "IGV visualisations of aligned contigs from minimus and croler")
 
 Since we took just reads from the second part of HIV genome, alignments
 on the left part of picture are misalignments (*croler* does not have
 them, but *minimus* does).
-
-![IGV visualisations of aligned contigs from minimus and croler](/images/hiv_croler_minimus.png "IGV visualisations of aligned contigs from minimus and croler")
 
 We are still not sure why contigs are cut on smaller reads, but we
 assume that it happens due to weight of assemblers. Both assemblers are
