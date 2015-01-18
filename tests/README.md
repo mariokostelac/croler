@@ -1,5 +1,4 @@
-Comparison tests
-================
+# Comparison tests
 
 This directory contains comparions tests between
 [minimus](http://amos.sourceforge.net/wiki/index.php/Minimus)
@@ -12,8 +11,7 @@ Each directory represents particular pipeline
 - **ol** stands for `croler overlap | croler layout | minimus consensus`
 - **olc** stands for `croler overlap | croler layout | croler consensus`
 
-Running
--------
+## Running
 Each directory contains `run.sh` script that will run particular
 pipeline against given file (*reads in .afg format*).
 
@@ -35,8 +33,7 @@ overlapper.
 **NOTE**: `run.sh` assumes that amos and croler bin directories are part
 of `$PATH` var.
 
-Results
--------
+## Results
 All results are calculated and written with [v1.0RC1]
 (https://github.com/mariokostelac/croler/archive/v1.0RC1.zip), all default params.
 
@@ -86,3 +83,8 @@ very light-weight and do not include any type of preprocessing reads,
 increasing the quality or scaffolding at the end.
 However, this issue should be subject of further investigations.
 
+## Time comparison
+Assembling HIV took 4h20m on *minimus* and 19m on *croler* assembler
+(run with 16 threads).
+Most of time assemblers spend in overlap phase (and *croler* finishes
+that phase in one sixteenth of *minimus* run time).
