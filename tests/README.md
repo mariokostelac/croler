@@ -71,3 +71,20 @@ However, lengths of top 10 contigs are showed in the table below:
 
 Looking at lengths of all contigs shows that *minimus* finds many contigs made of ~200b (about length of one read).
 It is completely reasonable that *croler* does not find these contigs because trimming and removing containments eliminate these contigs during layout phase.
+
+Running [blasr](https://github.com/PacificBiosciences/blasr) with default parameters and visualising results with [IGV](http://www.broadinstitute.org/igv/) gives us the picture shown below.
+
+[picture]
+
+Since we took just reads from the second part of HIV genome, alignments
+on the left part of picture are misalignments (*croler* does not have
+them, but *minimus* does).
+
+![IGV visualisations of aligned contigs from minimus and croler](/images/hiv_croler_minimus.png "IGV visualisations of aligned contigs from minimus and croler")
+
+We are still not sure why contigs are cut on smaller reads, but we
+assume that it happens due to weight of assemblers. Both assemblers are
+very light-weight and do not include any type of preprocessing reads,
+increasing the quality or scaffolding at the end.
+However, this issue should be subject of further investigations.
+
