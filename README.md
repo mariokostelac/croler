@@ -7,7 +7,7 @@ Sikic](http://complex.zesoi.fer.hr/msikic.html).
 As most OLC assemblers do, *croler* consists of three different phases:
 - [overlap](pipeline/qpid/README.md)
 - [layout](pipeline/brahle_assembly/README.md)
-- [consensus](pipeline/msa/README.md)
+- [consensus](pipeline/msa/README)
 
 *[for details follow the links above].*
 
