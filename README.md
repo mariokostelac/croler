@@ -30,7 +30,7 @@ refers to which stage.
 
 ## Running
 *croler* reads input in `.afg`
-([AMOS](http://amos.sourceforge.net/wiki/index.php/Message_Types)) format.
+([AMOS](http://amos.sourceforge.net/wiki/index.php/Message_Types)) format
 
 It can be run multiple ways.
 The simplest way is to use `run.sh` script like
@@ -48,6 +48,11 @@ graphs created by layout phase.
 phase separetely is more flexible and allows adjusting parameters to
 your test data. We really encourage you to explore the running options
 of each phase.
+
+## Preparing the data
+Converting *.fasta* files to *.afg* could be done with AMOS **toAmos** tool with
+
+    toAmos -o output.afg -s reads.fasta
 
 ## Results
 Jump to [tests](tests/README.md).
