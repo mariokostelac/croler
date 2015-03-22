@@ -11,6 +11,7 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <unistd.h>
 #include <zlib.h>
 #include <cstdlib>
 #include <cstring>
@@ -22,7 +23,7 @@ using std::swap;
 
 typedef unsigned int uint;
 
-int THREADS_NUM = 4;
+int THREADS_NUM = sysconf(_SC_NPROCESSORS_ONLN);
 int ALIGNMENT_BAND_RADIUS = 5;
 int OFFSET_WIGGLE = 3;
 int MERGE_RADIUS = 5 * ALIGNMENT_BAND_RADIUS;
