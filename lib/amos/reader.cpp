@@ -5,7 +5,7 @@
 #include <cstring>
 
 #define BUFF_SIZE 4096
-#define MAX_SEQ 32768
+#define MAX_SEQ 524288
 
 namespace AMOS {
 
