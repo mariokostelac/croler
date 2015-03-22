@@ -169,6 +169,8 @@ void find_overlaps_from_offsets(vector<Read>& reads, int t, const Read &target, 
 
       if (best_overlap.error_rate < MAXIMUM_ERROR_RATE) {
         output_overlap(best_overlap);
+      } else {
+	fprintf(stderr, "Overlap skipped because of error rate (%lf >= %lf [max])\n", best_overlap.error_rate, MAXIMUM_ERROR_RATE);		
       }
     }
 }
