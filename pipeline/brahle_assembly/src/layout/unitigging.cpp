@@ -266,7 +266,12 @@ void Unitigging::makeContigs(BetterOverlapSetPtr& c_overlaps, overlap::ReadSet*&
         degrees[read_two][better_overlap->Suf(read_two)] == 1) {
       auto contig_one = uf.find(read_one);
       auto contig_two = uf.find(read_two);
-      fprintf(stderr, "Joining contigs %d and %d\n", contig_one, contig_two);
+      if (contig_one == contig_two) {
+	fprintf(stderr, "Detected circular contig %d; size %d\n", contig_one);
+	continue;
+      }
+
+      fprintf(stderr, "Joining contigs %d and %d by reads (%d, %d)\n", contig_one, contig_two, read_one, read_two);
       auto larger = uf.join(read_one, read_two);
       if (larger == contig_one) {
         (*contigs_)[contig_one]->Join(better_overlap, (*contigs_)[contig_two]);
