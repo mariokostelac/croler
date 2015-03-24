@@ -164,8 +164,15 @@ void find_overlaps_from_offsets(vector<Read>& reads, int t, const Read &target, 
 
         if (j == first_j || score > best_overlap.score) {
           best_overlap = curr_overlap;
+
+          fprintf(stderr, "Overlap lengths (%d %d) of (%d %d)\n",
+    	    end.first - start.first,
+	    end.second - start.second,
+	    len_t, len_q 
+	  );
         }
       }
+
 
       if (best_overlap.error_rate < MAXIMUM_ERROR_RATE) {
         output_overlap(best_overlap);
