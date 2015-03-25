@@ -160,6 +160,21 @@ int main(int argc, char *argv[]) {
     initial_graph_file.close();
   }
 
+  // output .afg files after removing transitive edges and containment edges
+  {
+    layout::BetterReadSet brs(&reads, false);
+
+    std::ofstream no_containment_graph;
+    no_containment_graph.open("no_containment.afg", std::fstream::out);
+    layout::write_overlaps(no_containment_graph, &brs, u->noContains().get());
+    no_containment_graph.close();
+
+    std::ofstream no_transitives_graph;
+    no_transitives_graph.open("no_transitives.afg", std::fstream::out);
+    layout::write_overlaps(no_transitives_graph, &brs, u->noTransitives().get());
+    no_transitives_graph.close();
+  }
+
   // create dotgraph after removing transitive edges and containment reads
   {
     std::ofstream no_transitives_graph;

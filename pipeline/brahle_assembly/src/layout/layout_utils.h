@@ -8,6 +8,7 @@
 #include <layout/unitigging.h>
 
 #include <memory>
+#include <iostream>
 #include <unordered_map>
 
 namespace layout {
@@ -38,6 +39,8 @@ namespace layout {
   std::string dot_graph(overlap::ReadSet* reads, overlap::OverlapSet* overlaps);
 
   std::string dot_graph(const BetterReadSet* reads, const BetterOverlapSet* overlaps);
+
+  int write_overlaps(std::ostream& output, const BetterReadSet* reads, const BetterOverlapSet* overlaps);
 };  // namespace layout
 
 #endif  // LAYOUT_LAYOUT_UTILS_H_

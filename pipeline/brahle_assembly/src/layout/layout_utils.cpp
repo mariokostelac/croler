@@ -19,6 +19,7 @@ using std::string;
 using std::swap;
 using std::unordered_map;
 using std::vector;
+using std::ostream;
 
 namespace layout {
 
@@ -297,5 +298,44 @@ namespace layout {
     }
     graph << "}\n";
     return graph.str();
+  }
+
+  int write_overlaps(ostream& output, const BetterReadSet* reads, const BetterOverlapSet* overlaps) {
+    int lines = 0;
+
+    int overlaps_size = overlaps->size();
+    for (int i = 0; i < overlaps_size; ++i) {
+      const auto& overlap = (*overlaps)[i]->overlap();
+      int read1 = (*reads)[overlap->read_one]->read()->orig_id();
+      int read2 = (*reads)[overlap->read_two]->read()->orig_id();
+
+      output << "{OVL" << std::endl;
+      lines++;
+
+      char adj = '?';
+      switch (overlap->type) {
+        case overlap::Overlap::Type::EB:
+          adj = 'N';
+          break;
+        case overlap::Overlap::Type::EE:
+          adj = 'I';
+          break;
+        default:
+          assert(false);
+      }
+
+      output << "rds:" << read1 << "," << read2 << std::endl;
+      output << "adj:" << adj << std::endl;
+      output << "ahg:" << overlap->a_hang << std::endl;
+      output << "bhg:" << overlap->b_hang << std::endl;
+      output << "scr:" << overlap->score << std::endl;
+
+      lines += 5;
+
+      output << "}" << std::endl;
+      lines++;
+    }
+
+    return lines;
   }
 };  // namespace layout
