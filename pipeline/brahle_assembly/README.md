@@ -64,7 +64,7 @@ Transitive overlaps example:
 
 ![alt text](https://github.com/mariokostelac/croler/blob/master/images/transitive_graph.png "Transitive overlaps")
 
-As you see in picture above, there exists overlap between reads (R1,R2), (R2,R3) and (R1,R3). All data which is necessary is stored in reads R1 and R3 and their overlap so we can remove read R2 and overlaps (R1,R2) and (R2,R3).
+As you see in picture above, there exists overlap between reads (R1,R2), (R2,R3) and (R1,R3). All data which is necessary is stored in overlaps (R1, R2) and (R2, R3) so we can remove overlap (R1, R3).
 
 Next step is removing tips and disconnected vertices. Tips are reads which have overlaps in only one directions, i.e. only prefix or only suffix of read is part of overlaps. They emerge due to errors at the edges of reads. Disconnected vertices are reads which doesn't have any overlaps. This process is called *trimming*.
 
